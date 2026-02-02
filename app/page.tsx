@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Button from "@/components/Button";
 import Background from "@/components/Background";
+import './globals.css';
 
 export default function Home() {
   return (
