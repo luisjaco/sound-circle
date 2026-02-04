@@ -1,49 +1,40 @@
 import Link from "next/link";
 import Button from "@/components/Button";
+import Logo from "@/components/Logo";
 import Background from "@/components/Background";
-import './globals.css';
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center relative">
+    <main className="min-h-screen flex items-center justify-center relative px-6">
       <Background />
 
-      <div className="text-center px-6">
-        {/* Logo placeholder */}
+      <div className="text-center max-w-3xl mx-auto">
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-full border-2 border-brand flex items-center justify-center text-brand font-bold">
-            ◎
-          </div>
+          <Logo className="animate-spin-slow" />
         </div>
 
-        {/* Title */}
-        <h1 className="text-6xl font-extrabold leading-tight mb-4">
-          <span className="text-white">Sound</span>
-          <span className="text-brand">Circle</span>
+        <h1 className="hero-title">
+          <span style={{color: "white"}}>Sound</span><span style={{color: "var(--brand)"}}>Circle</span>
         </h1>
 
-        {/* Subtitle */}
-        <p className="max-w-xl mx-auto text-muted mb-8">
+        <p className="hero-sub">
           Share your music journey. Review albums. Connect with listeners worldwide.
         </p>
 
-        {/* Buttons — FIXED */}
-        <div className="flex items-center justify-center gap-5">
-          <Link href="/signup">
-            <Button>Sign Up</Button>
-          </Link>
+        <div className="hero-cta">
+        <Link href="/signup" className="btn-primary inline-block">
+          Sign Up
+        </Link>
 
-          <Link href="/login">
-            <Button variant="ghost">Log In</Button>
-          </Link>
+        <Link href="/login" className="btn-ghost inline-block">
+          Log In
+        </Link>
         </div>
 
-        {/* Footer link */}
-        <div className="mt-12 border-t faint pt-8 max-w-xl mx-auto text-muted">
-          <a className="inline-block mt-4 text-brand hover:underline" href="#">
-            Explore Demo →
-          </a>
-        </div>
+        <div className="hero-hr" />
+
+        <p className="preview-text">Preview the experience</p>
+        <a href="#" className="explore-link">Explore Demo →</a>
       </div>
     </main>
   );

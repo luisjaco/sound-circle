@@ -1,31 +1,53 @@
-import AuthCard from "../../components/AuthCard";
-import Input from "../../components/Input";
-import Button from "../../components/Button";
+import Link from "next/link";
+import Logo from "@/components/Logo";
+import AuthCard from "@/components/AuthCard";
+import Input from "@/components/Input";
+import Button from "@/components/Button";
 
-export default function Login() {
+export default function LoginPage() {
   return (
-    <main className="min-h-screen flex items-center justify-center">
-      <div className="w-full max-w-lg px-6">
-        <div className="text-center mb-6">
-          <div className="mx-auto w-12 h-12 rounded-full border-2 border-brand flex items-center justify-center text-brand mb-4">◎</div>
-          <h2 className="text-3xl font-bold mb-2">Welcome Back</h2>
-          <p className="text-muted">Log in to continue your music journey</p>
+    <main className="min-h-screen flex items-start justify-center px-6 auth-top">
+      <div className="w-full auth-wrapper">
+        <div className="text-center mb-8">
+          <Logo className="mx-auto mb-6 animate-spin-slow" />
+          <h1 className="text-3xl font-extrabold">Welcome Back</h1>
+          <p className="text-[var(--muted)] mt-2">Log in to continue your music journey</p>
         </div>
 
         <AuthCard>
-          <form className="space-y-6">
-            <Input label="Email" placeholder="your@email.com" type="email" />
-            <Input label="Password" placeholder="••••••••" type="password" />
-            <div className="text-right text-sm">
-              <a className="text-brand hover:underline" href="#">Forgot password?</a>
-            </div>
+          <div className="form-panel">
+            <form className="space-y-0" method="post" action="/api/auth/login">
+              <div className="form-row">
+                <label className="input-label">Email</label>
+                <Input className="w-full" name="email" placeholder="your@email.com" type="email" />
+              </div>
 
-            <Button type="submit" className="w-full">Log In</Button>
+              <div className="form-row">
+                <label className="input-label">Password</label>
+                <Input className="w-full" name="password" placeholder="••••••••" type="password" />
+              </div>
 
-            <p className="text-center text-sm text-muted">Don't have an account? <a href="/signup" className="text-brand">Sign Up</a></p>
-          </form>
+              <div className="flex items-center justify-between mb-6">
+                <div />
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-[var(--brand)] forgot-link"
+                >
+                Forgot password?
+                </Link>
+              </div>
+
+              <div>
+                <Button type="submit" variant="primary" className="w-full mt-6">Log In</Button>
+              </div>
+            </form>
+          </div>
         </AuthCard>
+
+        <p className="text-center text-sm text-[var(--muted)] mt-6">
+          Don't have an account? <Link href="/signup" className="text-[var(--brand)]">Sign Up</Link>
+        </p>
       </div>
     </main>
-  )
+  );
 }
