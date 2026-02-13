@@ -89,6 +89,16 @@ h1,h2 { font-family: "Poppins", Inter, system-ui, sans-serif; }
   border: 1px solid rgba(255,255,255,0.035);
   box-sizing: border-box;
   overflow: hidden;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.6),
+    0 0 28px rgba(16, 183, 89, 0.06);
+  transition: box-shadow 200ms ease;
+}
+
+.auth-card.glow {
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.6),
+    0 0 20px rgba(16, 183, 89, 0.18);
 }
 
 .form-panel {
@@ -108,6 +118,34 @@ h1,h2 { font-family: "Poppins", Inter, system-ui, sans-serif; }
   font-size: 0.9375rem;
   color: inherit;
   box-sizing: border-box;
+}
+
+.input-with-icon.input-valid {
+  box-shadow: 0 6px 18px rgba(16,183,89,0.10);
+  border-color: rgba(16,183,89,0.28);
+}
+
+.input-with-icon.input-invalid {
+  box-shadow: 0 6px 18px rgba(255,80,80,0.06);
+  border-color: rgba(255,80,80,0.32);
+}
+
+.onboard-arrow {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 30px rgba(16,183,89,0.12), inset 0 -6px 18px rgba(0,0,0,0.25);
+  transition: transform .12s ease, box-shadow .12s ease;
+}
+.onboard-arrow:hover { transform: translateY(-2px); box-shadow: 0 18px 42px rgba(16,183,89,0.18); }
+
+.onboard-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .input-with-icon {
@@ -167,5 +205,115 @@ a.btn-primary, a.btn-ghost, a.btn-base { text-decoration: none; }
   .form-panel .btn-primary { height: 56px; }
 }
 
+.genre-btn {
+  color: #ffffff !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  white-space: nowrap;
+}
 
+.genre-btn.genre-active { color: #ffffff !important; }
+
+.genre-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 640px) {
+  .genre-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+}
+
+.genre-btn {
+  padding: 0.85rem 1.25rem;
+  font-size: 1.05rem;
+  border-radius: 9999px;
+}
+
+.upload-pill {
+  padding: 0.9rem 1.4rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  color: #fff !important;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onboard-arrow {
+  width: 56px;
+  height: 56px;
+  border-radius: 9999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.input-label { color: var(--muted); }
+.hero-sub, .preview-text, .info-box p, .text-muted {
+  color: var(--muted);
+}
+
+.form-panel .genre-row { margin-top: 1rem; margin-bottom: 0.6rem; }
+
+.artist-input {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+  color: #e6eef2;
+  padding: 12px 14px;
+  border-radius: 12px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.artist-input::placeholder {
+  color: rgba(230,238,242,0.45);
+}
+
+.add-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  margin-left: 8px;
+  border-radius: 9999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .12s ease, transform .08s ease;
+}
+.add-button:hover { background: rgba(255,255,255,0.10); transform: translateY(-1px); }
+
+.artist-list {
+  margin-top: 1rem;
+  margin-bottom: 2.2rem;
+}
+
+.artist-token {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.04);
+  padding: 6px 10px;
+  border-radius: 9999px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  color: #fff;
+}
+
+.onboard-footer-right { gap: 18px; }
+
+.input-add-row { display:flex; gap:8px; align-items:center; }
+@media (max-width:640px){ .input-add-row { flex-direction:column; align-items:stretch; } .add-button { width:100%; margin-left:0; } }
+
+.form-panel > .mt-6 > .text-xs.text-\[var\(--muted\)\].text-center {
+  margin-top: 4.0rem;
+}
 
