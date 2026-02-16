@@ -1,9 +1,14 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useMusicKit } from '@/components/providers/MusicKitProvider';
 import AppleMusicAuthBtn from '@/components/AppleMusicAuthBtn';
-import { ListMusic, Loader2, PlayCircle, Music, Clock, X, Disc } from 'lucide-react';
+import {
+    ListMusic, Loader2, PlayCircle, Music, Clock, X, Disc,
+    Plus, CheckCircle2, XCircle, ExternalLink, PlusCircle, Trash2
+} from 'lucide-react';
+
+// ---------- Types ----------
 
 interface Playlist {
     id: string;
@@ -26,6 +31,39 @@ interface Track {
     };
 }
 
+interface ResolvedTrack {
+    appleMusicId: string;
+    name: string;
+    artistName: string;
+    musicBrainzId: string | null;
+    musicBrainzTitle: string | null;
+    musicBrainzArtist: string | null;
+    status: 'resolving' | 'matched' | 'not_found' | 'error';
+    artworkUrl?: string | null;
+    error?: string;
+}
+
+// ---------- localStorage Helpers ----------
+
+const STORAGE_KEY = 'soundcircle_added_songs';
+
+function loadAddedSongs(): ResolvedTrack[] {
+    if (typeof window === 'undefined') return [];
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveAddedSongs(songs: ResolvedTrack[]) {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(songs));
+}
+
+// ---------- Component ----------
+
 export default function AppleMusicLibraryPage() {
     const { musicKit, isAuthorized, initializationError } = useMusicKit();
 
@@ -41,13 +79,40 @@ export default function AppleMusicLibraryPage() {
     const [loadingRecent, setLoadingRecent] = useState(false);
     const [loadingPlaylistTracks, setLoadingPlaylistTracks] = useState(false);
 
+    // MusicBrainz resolution states
+    const [addedSongs, setAddedSongs] = useState<ResolvedTrack[]>([]);
+    const [resolvingIds, setResolvingIds] = useState<Set<string>>(new Set());
+    const [batchResolving, setBatchResolving] = useState(false);
+    const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+
+    // Load persisted songs on mount
+    useEffect(() => {
+        setAddedSongs(loadAddedSongs());
+    }, []);
+
+    // Persist whenever addedSongs changes
+    useEffect(() => {
+        if (addedSongs.length > 0) {
+            saveAddedSongs(addedSongs);
+        }
+    }, [addedSongs]);
+
+    // Check if a track is already added
+    const isTrackAdded = useCallback((trackId: string) => {
+        return addedSongs.some((s) => s.appleMusicId === trackId);
+    }, [addedSongs]);
+
+    const isTrackResolving = useCallback((trackId: string) => {
+        return resolvingIds.has(trackId);
+    }, [resolvingIds]);
+
+    // ---------- Apple Music Fetchers ----------
+
     const fetchLibrary = async () => {
         if (!musicKit || !isAuthorized) return;
-
         setLoadingPlaylists(true);
         setError(null);
         setPlaylists([]);
-
         try {
             let res;
             if (musicKit.api && musicKit.api.library) {
@@ -57,14 +122,11 @@ export default function AppleMusicLibraryPage() {
             } else {
                 throw new Error('MusicKit API unavailable');
             }
-
             let items: any[] = [];
             if (Array.isArray(res)) items = res;
             else if (res.data && Array.isArray(res.data)) items = res.data;
             else if (res.data && res.data.data && Array.isArray(res.data.data)) items = res.data.data;
-
             setPlaylists(items);
-
         } catch (err: any) {
             console.error("API Error:", err);
             setError(err.message || "Failed to fetch playlists");
@@ -75,25 +137,20 @@ export default function AppleMusicLibraryPage() {
 
     const fetchRecentTracks = async () => {
         if (!musicKit || !isAuthorized) return;
-
         setLoadingRecent(true);
         setError(null);
         setRecentTracks([]);
-
         try {
-            // v1/me/recent/played/tracks
             let res;
             if (musicKit.api && musicKit.api.music) {
                 res = await musicKit.api.music('v1/me/recent/played/tracks', { limit: 5 });
             } else {
                 throw new Error('MusicKit API unavailable');
             }
-
             let items: any[] = [];
             if (Array.isArray(res)) items = res;
             else if (res.data && Array.isArray(res.data)) items = res.data;
             else if (res.data && res.data.data && Array.isArray(res.data.data)) items = res.data.data;
-
             setRecentTracks(items);
         } catch (err: any) {
             console.error("Recent Tracks API Error:", err);
@@ -105,26 +162,21 @@ export default function AppleMusicLibraryPage() {
 
     const fetchPlaylistTracks = async (playlist: Playlist) => {
         if (!musicKit || !isAuthorized) return;
-
         setSelectedPlaylist(playlist);
         setLoadingPlaylistTracks(true);
         setPlaylistTracks([]);
         setError(null);
-
         try {
-            // v1/me/library/playlists/{id}/tracks
             let res;
             if (musicKit.api && musicKit.api.music) {
                 res = await musicKit.api.music(`v1/me/library/playlists/${playlist.id}/tracks`, { limit: 50 });
             } else {
                 throw new Error('MusicKit API unavailable');
             }
-
             let items: any[] = [];
             if (Array.isArray(res)) items = res;
             else if (res.data && Array.isArray(res.data)) items = res.data;
             else if (res.data && res.data.data && Array.isArray(res.data.data)) items = res.data.data;
-
             setPlaylistTracks(items);
         } catch (err: any) {
             console.error("Playlist Tracks API Error:", err);
@@ -134,13 +186,131 @@ export default function AppleMusicLibraryPage() {
         }
     };
 
-    // Helper to format artwork URL
+    // ---------- MusicBrainz Resolution ----------
+
+    const resolveAndAddTrack = async (track: Track) => {
+        if (isTrackAdded(track.id) || isTrackResolving(track.id)) return;
+
+        const artworkUrl = getArtworkUrl(track.attributes.artwork?.url, 120);
+
+        // Immediately add as "resolving"
+        const placeholder: ResolvedTrack = {
+            appleMusicId: track.id,
+            name: track.attributes.name,
+            artistName: track.attributes.artistName,
+            musicBrainzId: null,
+            musicBrainzTitle: null,
+            musicBrainzArtist: null,
+            status: 'resolving',
+            artworkUrl,
+        };
+
+        setAddedSongs((prev) => [...prev, placeholder]);
+        setResolvingIds((prev) => new Set(prev).add(track.id));
+
+        try {
+            // Step 1: Try to get ISRC from Apple Music catalog
+            let isrc: string | undefined;
+            try {
+                const userMusicToken = musicKit?.musicUserToken;
+                if (userMusicToken) {
+                    const catalogRes = await fetch('/api/apple/catalog', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            trackIds: [track.id],
+                            userMusicToken,
+                        }),
+                    });
+                    if (catalogRes.ok) {
+                        const catalogData = await catalogRes.json();
+                        isrc = catalogData.tracks?.[0]?.isrc || undefined;
+                    }
+                }
+            } catch {
+                // continue without ISRC
+            }
+
+            // Step 2: Resolve via MusicBrainz
+            const mbRes = await fetch('/api/musicbrainz/lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    tracks: [{
+                        appleMusicId: track.id,
+                        name: track.attributes.name,
+                        artistName: track.attributes.artistName,
+                        isrc,
+                    }],
+                }),
+            });
+
+            if (!mbRes.ok) throw new Error('MusicBrainz lookup failed');
+
+            const mbData = await mbRes.json();
+            const result = mbData.results?.[0];
+
+            if (result) {
+                setAddedSongs((prev) =>
+                    prev.map((s) =>
+                        s.appleMusicId === track.id
+                            ? { ...s, ...result, artworkUrl }
+                            : s
+                    )
+                );
+            }
+        } catch (err: any) {
+            setAddedSongs((prev) =>
+                prev.map((s) =>
+                    s.appleMusicId === track.id
+                        ? { ...s, status: 'error' as const, error: err.message }
+                        : s
+                )
+            );
+        } finally {
+            setResolvingIds((prev) => {
+                const next = new Set(prev);
+                next.delete(track.id);
+                return next;
+            });
+        }
+    };
+
+    const resolveAndAddBatch = async (tracks: Track[]) => {
+        const newTracks = tracks.filter((t) => !isTrackAdded(t.id) && !isTrackResolving(t.id));
+        if (newTracks.length === 0) return;
+
+        setBatchResolving(true);
+        setBatchProgress({ current: 0, total: newTracks.length });
+
+        for (let i = 0; i < newTracks.length; i++) {
+            await resolveAndAddTrack(newTracks[i]);
+            setBatchProgress({ current: i + 1, total: newTracks.length });
+        }
+
+        setBatchResolving(false);
+    };
+
+    const removeAddedSong = (appleMusicId: string) => {
+        setAddedSongs((prev) => {
+            const next = prev.filter((s) => s.appleMusicId !== appleMusicId);
+            saveAddedSongs(next);
+            return next;
+        });
+    };
+
+    const clearAllSongs = () => {
+        setAddedSongs([]);
+        localStorage.removeItem(STORAGE_KEY);
+    };
+
+    // ---------- Helpers ----------
+
     const getArtworkUrl = (url?: string, size = 120) => {
         if (!url) return null;
         return url.replace('{w}', size.toString()).replace('{h}', size.toString());
     };
 
-    // Helper to format duration
     const formatDuration = (ms?: number) => {
         if (!ms) return '-:--';
         const minutes = Math.floor(ms / 60000);
@@ -148,10 +318,84 @@ export default function AppleMusicLibraryPage() {
         return `${minutes}:${Number(seconds) < 10 ? '0' : ''}${seconds}`;
     };
 
+    // ---------- Sub-Components ----------
+
+    const TrackStatusBadge = ({ track }: { track: ResolvedTrack }) => {
+        if (track.status === 'resolving') {
+            return (
+                <span className="inline-flex items-center gap-1 text-xs text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Resolving
+                </span>
+            );
+        }
+        if (track.status === 'matched') {
+            return (
+                <a
+                    href={`https://musicbrainz.org/recording/${track.musicBrainzId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full hover:bg-green-400/20 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                >
+                    <CheckCircle2 className="w-3 h-3" /> Matched
+                    <ExternalLink className="w-2.5 h-2.5" />
+                </a>
+            );
+        }
+        if (track.status === 'not_found') {
+            return (
+                <span className="inline-flex items-center gap-1 text-xs text-neutral-400 bg-neutral-400/10 px-2 py-0.5 rounded-full">
+                    <XCircle className="w-3 h-3" /> Not Found
+                </span>
+            );
+        }
+        return (
+            <span className="inline-flex items-center gap-1 text-xs text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full">
+                <XCircle className="w-3 h-3" /> Error
+            </span>
+        );
+    };
+
+    const AddTrackButton = ({ track, small = false }: { track: Track; small?: boolean }) => {
+        const added = isTrackAdded(track.id);
+        const resolving = isTrackResolving(track.id);
+
+        if (added) {
+            const resolved = addedSongs.find((s) => s.appleMusicId === track.id);
+            if (resolved) return <TrackStatusBadge track={resolved} />;
+            return (
+                <span className="text-xs text-green-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                </span>
+            );
+        }
+
+        if (resolving) {
+            return <Loader2 className="w-4 h-4 animate-spin text-yellow-400" />;
+        }
+
+        return (
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    resolveAndAddTrack(track);
+                }}
+                className={`flex items-center gap-1 rounded-full font-medium transition-all duration-200 hover:scale-105 active:scale-95 ${small
+                    ? 'p-1.5 bg-white/10 hover:bg-white/20 text-white'
+                    : 'px-3 py-1.5 text-xs bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-400 hover:to-pink-400 shadow-lg shadow-red-500/20'
+                    }`}
+                title="Add to SoundCircle"
+            >
+                <Plus className={small ? 'w-3.5 h-3.5' : 'w-3 h-3'} />
+                {!small && <span>Add</span>}
+            </button>
+        );
+    };
+
+    // ---------- Render ----------
+
     return (
         <div className="min-h-screen bg-black text-white font-sans selection:bg-red-500/30 pb-20">
-
-            {/* Background Gradient */}
             <div className="fixed inset-0 bg-gradient-to-b from-neutral-900/50 to-black pointer-events-none" />
 
             <div className="relative max-w-6xl mx-auto px-6 py-12 space-y-12">
@@ -222,22 +466,96 @@ export default function AppleMusicLibraryPage() {
                             {error}
                         </div>
                     )}
+
+                    {/* Batch progress */}
+                    {batchResolving && (
+                        <div className="p-4 bg-yellow-500/10 rounded-xl border border-yellow-500/20 flex items-center gap-3">
+                            <Loader2 className="w-5 h-5 animate-spin text-yellow-400" />
+                            <span className="text-yellow-300 text-sm font-medium">
+                                Resolving tracks... {batchProgress.current}/{batchProgress.total}
+                            </span>
+                            <div className="flex-1 h-1.5 bg-neutral-800 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-gradient-to-r from-yellow-400 to-orange-400 rounded-full transition-all duration-300"
+                                    style={{ width: `${batchProgress.total > 0 ? (batchProgress.current / batchProgress.total) * 100 : 0}%` }}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </section>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
-                    {/* Main Content Area (Playlists or Recent) */}
+                    {/* Main Content Area */}
                     <div className="lg:col-span-2 space-y-12">
+
+                        {/* Added Songs Section */}
+                        {addedSongs.length > 0 && (
+                            <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-2xl font-semibold flex items-center gap-2 text-white/90">
+                                        <PlusCircle className="w-6 h-6 text-green-500" />
+                                        My Added Songs
+                                        <span className="text-sm font-normal text-neutral-500 ml-2">
+                                            {addedSongs.filter((s) => s.status === 'matched').length} matched / {addedSongs.length} total
+                                        </span>
+                                    </h2>
+                                    <button
+                                        onClick={clearAllSongs}
+                                        className="text-xs text-neutral-500 hover:text-red-400 flex items-center gap-1 transition-colors"
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" /> Clear All
+                                    </button>
+                                </div>
+                                <div className="bg-neutral-900/40 rounded-3xl border border-white/5 overflow-hidden">
+                                    {addedSongs.map((track) => {
+                                        return (
+                                            <div key={track.appleMusicId} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group">
+                                                <div className="w-12 h-12 rounded-lg bg-neutral-800 overflow-hidden flex-shrink-0">
+                                                    {track.artworkUrl ? (
+                                                        /* eslint-disable-next-line @next/next/no-img-element */
+                                                        <img src={track.artworkUrl} alt={track.name} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <Music className="w-6 h-6 text-neutral-600 m-auto mt-3" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h4 className="font-medium text-white truncate">{track.name}</h4>
+                                                    <p className="text-sm text-neutral-400 truncate">{track.artistName}</p>
+                                                </div>
+                                                <TrackStatusBadge track={track} />
+                                                <button
+                                                    onClick={() => removeAddedSong(track.appleMusicId)}
+                                                    className="p-1 text-neutral-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
+                                                    title="Remove"
+                                                >
+                                                    <X className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </section>
+                        )}
 
                         {/* Recent Tracks Section */}
                         {recentTracks.length > 0 && (
                             <section className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                <h2 className="text-2xl font-semibold flex items-center gap-2 text-white/90">
-                                    <Clock className="w-6 h-6 text-pink-500" />
-                                    Recently Played
-                                </h2>
+                                <div className="flex items-center justify-between">
+                                    <h2 className="text-2xl font-semibold flex items-center gap-2 text-white/90">
+                                        <Clock className="w-6 h-6 text-pink-500" />
+                                        Recently Played
+                                    </h2>
+                                    <button
+                                        onClick={() => resolveAndAddBatch(recentTracks)}
+                                        disabled={batchResolving}
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-400 hover:to-pink-400 transition-all disabled:opacity-50 shadow-lg shadow-red-500/20"
+                                    >
+                                        <PlusCircle className="w-3.5 h-3.5" /> Add All
+                                    </button>
+                                </div>
                                 <div className="bg-neutral-900/40 rounded-3xl border border-white/5 overflow-hidden">
-                                    {recentTracks.map((track, i) => {
+                                    {recentTracks.map((track) => {
                                         const artworkUrl = getArtworkUrl(track.attributes.artwork?.url, 120);
                                         return (
                                             <div key={track.id} className="flex items-center gap-4 p-4 hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 group">
@@ -256,6 +574,7 @@ export default function AppleMusicLibraryPage() {
                                                 <div className="text-xs text-neutral-500 font-mono">
                                                     {formatDuration(track.attributes.durationInMillis)}
                                                 </div>
+                                                <AddTrackButton track={track} />
                                             </div>
                                         );
                                     })}
@@ -316,34 +635,41 @@ export default function AppleMusicLibraryPage() {
                             </section>
                         )}
 
-                        {/* Empty State / Prompt */}
-                        {isAuthorized && playlists.length === 0 && recentTracks.length === 0 && !loadingPlaylists && !loadingRecent && !error && (
+                        {/* Empty State */}
+                        {isAuthorized && playlists.length === 0 && recentTracks.length === 0 && addedSongs.length === 0 && !loadingPlaylists && !loadingRecent && !error && (
                             <div className="text-center py-20 bg-neutral-900/20 rounded-3xl border border-white/5 dashed-border">
-                                <p className="text-neutral-500">Click "My Playlists" or "Recent Songs" to see your Apple Music library.</p>
+                                <p className="text-neutral-500">Click &quot;My Playlists&quot; or &quot;Recent Songs&quot; to see your Apple Music library.</p>
                             </div>
                         )}
                     </div>
 
-                    {/* Playlist Detail Sidebar */}
-                    {/* Using a Portal-like behavior with fixed positioning overlay for better z-index management */}
-                    <div
-                        className={`fixed inset-y-0 right-0 w-full md:w-[480px] bg-neutral-900/95 border-l border-white/10 backdrop-blur-xl shadow-2xl transform transition-transform duration-300 z-[100] flex flex-col h-[100dvh]
-                ${selectedPlaylist ? 'translate-x-0' : 'translate-x-full'}`}
-                    >
-                        {selectedPlaylist && (
-                            <>
-                                {/* Sidebar Header */}
-                                <div className="p-6 md:p-8 pb-4 flex-shrink-0 flex flex-col gap-6 border-b border-white/5 bg-neutral-900/50">
-                                    <button
-                                        onClick={() => setSelectedPlaylist(null)}
-                                        className="self-end p-2 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white"
-                                        aria-label="Close sidebar"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
+                    {/* Playlist Detail — Full-Screen Overlay */}
+                    {selectedPlaylist && (
+                        <div className="fixed inset-0 z-[9999] bg-black/80 backdrop-blur-sm" onClick={() => setSelectedPlaylist(null)}>
+                            <div
+                                className="fixed inset-0 z-[10000] bg-neutral-950 flex flex-col h-[100dvh] overflow-hidden"
+                                onClick={(e) => e.stopPropagation()}
+                            >
+                                {/* Playlist Header */}
+                                <div className="flex-shrink-0 p-6 md:p-8 pb-4 flex flex-col gap-6 border-b border-white/10 bg-neutral-900/80">
+                                    <div className="flex items-center justify-between">
+                                        <button
+                                            onClick={() => setSelectedPlaylist(null)}
+                                            className="flex items-center gap-2 p-2 px-4 bg-white/10 rounded-full hover:bg-white/20 transition-colors text-white text-sm font-medium"
+                                        >
+                                            <X className="w-4 h-4" /> Back
+                                        </button>
+                                        <button
+                                            onClick={() => resolveAndAddBatch(playlistTracks)}
+                                            disabled={batchResolving || loadingPlaylistTracks || playlistTracks.length === 0}
+                                            className="flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-medium bg-gradient-to-r from-red-500 to-pink-500 text-white hover:from-red-400 hover:to-pink-400 transition-all disabled:opacity-50 shadow-lg shadow-red-500/20"
+                                        >
+                                            <PlusCircle className="w-3.5 h-3.5" /> Add All
+                                        </button>
+                                    </div>
 
                                     <div className="flex gap-5 items-start">
-                                        <div className="aspect-square w-32 md:w-40 rounded-xl overflow-hidden bg-neutral-800 shadow-2xl flex-shrink-0">
+                                        <div className="aspect-square w-28 md:w-36 rounded-xl overflow-hidden bg-neutral-800 shadow-2xl flex-shrink-0">
                                             {getArtworkUrl(selectedPlaylist.attributes.artwork?.url, 400) ? (
                                                 /* eslint-disable-next-line @next/next/no-img-element */
                                                 <img
@@ -371,17 +697,17 @@ export default function AppleMusicLibraryPage() {
                                     </div>
                                 </div>
 
-                                {/* Tracks List (Scrollable Area) */}
-                                <div className="flex-1 overflow-y-auto custom-scrollbar p-2">
+                                {/* Scrollable Tracks List */}
+                                <div className="flex-1 min-h-0 overflow-y-auto p-4 md:p-6">
                                     {loadingPlaylistTracks ? (
                                         <div className="flex flex-col items-center justify-center py-20 text-neutral-500 gap-3">
                                             <Loader2 className="w-8 h-8 animate-spin text-red-500" />
                                             <span className="text-sm font-medium">Loading tracks...</span>
                                         </div>
                                     ) : playlistTracks.length > 0 ? (
-                                        <div className="space-y-1">
+                                        <div className="max-w-3xl mx-auto space-y-1">
                                             {playlistTracks.map((track, index) => (
-                                                <div key={track.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 transition-colors group">
+                                                <div key={track.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors group">
                                                     <span className="text-xs text-neutral-600 font-mono w-6 text-center group-hover:text-neutral-400 flex-shrink-0">
                                                         {index + 1}
                                                     </span>
@@ -392,7 +718,6 @@ export default function AppleMusicLibraryPage() {
                                                         ) : (
                                                             <Music className="w-4 h-4 text-neutral-600 m-auto mt-3" />
                                                         )}
-                                                        {/* Play Overlay */}
                                                         <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center">
                                                             <PlayCircle className="w-5 h-5 text-white" />
                                                         </div>
@@ -405,9 +730,7 @@ export default function AppleMusicLibraryPage() {
                                                             {track.attributes.artistName}
                                                         </p>
                                                     </div>
-                                                    <span className="text-xs text-neutral-600 font-mono pr-2">
-                                                        {formatDuration(track.attributes.durationInMillis)}
-                                                    </span>
+                                                    <AddTrackButton track={track} small />
                                                 </div>
                                             ))}
                                         </div>
@@ -417,9 +740,9 @@ export default function AppleMusicLibraryPage() {
                                         </div>
                                     )}
                                 </div>
-                            </>
-                        )}
-                    </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
