@@ -1,15 +1,17 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import Logo from "@/components/Logo";
 
 const GENRES = [
-  "Rock","Pop","Hip-Hop","Electronic","Indie","Jazz","Classical",
-  "Metal","R&B","Country","Reggae","Folk","Punk","Soul","Blues"
+  "Rock", "Pop", "Hip-Hop", "Electronic", "Indie", "Jazz", "Classical",
+  "Metal", "R&B", "Country", "Reggae", "Folk", "Punk", "Soul", "Blues"
 ];
 
 export default function OnboardingPage() {
+  const router = useRouter();
   const [index, setIndex] = useState(0);
   const [titleVisible, setTitleVisible] = useState(false);
 
@@ -189,7 +191,7 @@ export default function OnboardingPage() {
       <div className="mt-6">
         <label className="input-label">Search artists</label>
 
-        {}
+        { }
         <div className="input-with-icon" style={{ padding: 0 }}>
           <input
             value={artistQuery}
@@ -207,8 +209,8 @@ export default function OnboardingPage() {
             style={{ padding: "12px 14px", width: "100%" }}
           />
         </div>
-            <div style={{ height: 8 }} />
-        {}
+        <div style={{ height: 8 }} />
+        { }
         <div className="mt-4 flex justify-center">
           <button
             type="button"
@@ -256,7 +258,7 @@ export default function OnboardingPage() {
       </div>
 
       <div className="mt-6 space-y-4">
-        {}
+        { }
         <button
           className="w-full rounded-full py-4 flex items-center justify-center gap-3 bg-[var(--brand)] transition"
           onClick={() => { /* TODO: open spotify OAuth */ alert("Spotify connect flow (stub)"); }}
@@ -271,11 +273,11 @@ export default function OnboardingPage() {
 
           <span className="text-white font-semibold text-lg"></span>
         </button>
-            <div style={{ height: 8 }} />
-        {}
+        <div style={{ height: 8 }} />
+        { }
         <button
           className="w-full rounded-full py-4 flex items-center justify-center gap-3 bg-[rgba(255,255,255,0.92)] transition"
-          onClick={() => { /* TODO: open apple music connect */ alert("Apple Music connect flow (stub)"); }}
+          onClick={() => router.push('/library')}
           aria-label="Connect with Apple Music"
           style={{ boxShadow: "none" }}
         >
@@ -287,7 +289,7 @@ export default function OnboardingPage() {
 
           <span className="text-black font-semibold text-lg"></span>
         </button>
-          <div style={{ height: 32 }} />
+        <div style={{ height: 32 }} />
         <div className="text-xs text-[var(--muted)] mt-12 text-center">You can connect later if you'd prefer.</div>
       </div>
     </div>,
@@ -319,7 +321,7 @@ export default function OnboardingPage() {
           <div className="mt-1"><span className="text-white">{artistPicks.join(", ") || "—"}</span></div>
         </div>
 
-        {}
+        { }
         <div style={{ height: 32 }} />
         <div className="mt-4 text-[var(--muted)] text-sm">Tap the arrow to finish!</div>
       </div>
@@ -379,13 +381,13 @@ export default function OnboardingPage() {
               {index < slides.length - 1 ? (
                 <button onClick={next} className="onboard-arrow bg-[var(--brand)] text-black" aria-label="Next">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               ) : (
                 <button onClick={finish} className="onboard-arrow bg-[var(--brand)] text-black" aria-label="Finish">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
               )}
