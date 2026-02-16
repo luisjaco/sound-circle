@@ -26,7 +26,7 @@ interface Track {
     };
 }
 
-export default function AppleMusicTestPage() {
+export default function AppleMusicLibraryPage() {
     const { musicKit, isAuthorized, initializationError } = useMusicKit();
 
     // Data States
@@ -163,7 +163,7 @@ export default function AppleMusicTestPage() {
                             Apple Music
                         </h1>
                         <p className="text-neutral-400 text-lg">
-                            Integration Status & Library Test
+                            Your Music Library
                         </p>
                     </div>
 

@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 
 export async function GET() {
   try {
-    //@TODO change from env file to Vercel production (To future Risham)
+
     const teamId = process.env.APPLE_TEAM_ID;
     const keyId = process.env.APPLE_KEY_ID;
     const privateKey = process.env.APPLE_PRIVATE_KEY;
@@ -29,9 +29,9 @@ export async function GET() {
       }
     });
 
-    const testUrl = 'https://api.music.apple.com/v1/storefronts/us';
+    const verificationUrl = 'https://api.music.apple.com/v1/storefronts/us';
 
-    const response = await fetch(testUrl, {
+    const response = await fetch(verificationUrl, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -65,4 +65,4 @@ export async function GET() {
     }, { status: 500 });
   }
 }
-//curl http://localhost:3000/api/apple/test-env <-- run this command to test
+//curl http://localhost:3000/api/apple/verify <-- run this command to verify keys
