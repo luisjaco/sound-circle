@@ -35,7 +35,10 @@ export default function LoginPage() {
 
     // move on
     setError(false);
-    router.push('/dashboard'); //TODO CHANGE
+    router.push('/dashboard');
+    /**
+     * @todo update dashboard tag if we use a different name.
+     */
   }
 
   return (
@@ -50,7 +53,7 @@ export default function LoginPage() {
         <AuthCard>
           <div className="form-panel">
             <form className="space-y-0" method="post" onSubmit={handleSubmit}>
-              <label hidden={!error} >Invalid email or password.</label> { /* LOGAN HERE !!! */}
+              <label hidden={!error} >Invalid email or password.</label> { /** @todo logan */}
 
               <div className="form-row">
                 <label className="input-label">Email</label>

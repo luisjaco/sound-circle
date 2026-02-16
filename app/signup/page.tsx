@@ -1,11 +1,55 @@
+'use client'
+
 // app/signup/page.tsx
 import Link from "next/link";
 import Logo from "@/components/Logo";
 import AuthCard from "@/components/AuthCard";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
+import { useState } from 'react';
+import { useRouter } from 'next/navigation'; 
 
 export default function SignUpPage() {
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(false);
+  const router = useRouter();
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+  
+    // validate formatting
+    const emailRegex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
+    const passwordRegex  = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/
+    if (!(emailRegex.test(email)) || !(passwordRegex.test(password))){
+        return Response.json(
+            { error: 'Invalid email or password' },
+            { status: 400 }
+        )
+    }
+
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-type' : 'application/json'
+      },
+      body : JSON.stringify( {email, password} )
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      setError(true);
+      return;
+    }
+
+    // move on
+    setError(false);
+    router.push('/onboarding');
+
+  }
+
   return (
     <main className="min-h-screen flex items-start justify-center px-6 auth-top">
       <div className="w-full auth-wrapper">
@@ -19,15 +63,16 @@ export default function SignUpPage() {
         <AuthCard>
           {/* inner grey panel that holds the inputs */}
           <div className="form-panel">
-            <form className="space-y-0" method="post" action="/api/auth/signup">
+            <label hidden={!error} >Invalid email or password.</label> { /** @todo logan */}
+            <form className="space-y-0" method="post" onSubmit={handleSubmit}>
               <div className="form-row">
                 <label className="input-label">Email</label>
-                <Input className="w-full" name="email" placeholder="your@email.com" type="email" />
+                <Input className="w-full" name="email" placeholder="your@email.com" type="email" onChange={(e) => setEmail(e.target.value)}/>
               </div>
 
               <div className="form-row">
                 <label className="input-label">Password</label>
-                <Input className="w-full" name="password" placeholder="••••••••" type="password" />
+                <Input className="w-full" name="password" placeholder="••••••••" type="password" onChange={(e) => setPassword(e.target.value)}/>
               </div>
 
               <div className="form-row">
