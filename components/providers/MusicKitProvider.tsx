@@ -7,6 +7,7 @@ interface MusicKitContextType {
     isAuthorized: boolean;
     authorize: () => Promise<void>;
     unauthorize: () => Promise<void>;
+    initializationError: string | null;
 }
 
 const MusicKitContext = createContext<MusicKitContextType | undefined>(undefined);
@@ -22,14 +23,20 @@ export const useMusicKit = () => {
 export function MusicKitProvider({ children }: { children: React.ReactNode }) {
     const [musicKit, setMusicKit] = useState<any>(null);
     const [isAuthorized, setIsAuthorized] = useState(false);
+    const [initializationError, setInitializationError] = useState<string | null>(null);
 
     useEffect(() => {
         const initMusicKit = async () => {
             try {
                 const res = await fetch('/api/apple/token');
+                if (!res.ok) {
+                    throw new Error(`Failed to fetch token: ${res.statusText}`);
+                }
                 const { token } = await res.json();
 
-                if (!token) return;
+                if (!token) {
+                    throw new Error('No token received');
+                }
 
                 if (!(window as any).MusicKit) {
                     const script = document.createElement('script');
@@ -37,12 +44,14 @@ export function MusicKitProvider({ children }: { children: React.ReactNode }) {
                     script.async = true;
                     script.crossOrigin = "anonymous";
                     script.onload = () => configureMusicKit(token);
+                    script.onerror = () => setInitializationError('Failed to load MusicKit script');
                     document.body.appendChild(script);
                 } else {
                     configureMusicKit(token);
                 }
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error initializing MusicKit:', error);
+                setInitializationError(error.message || 'Failed to initialize MusicKit');
             }
         };
 
@@ -63,8 +72,9 @@ export function MusicKitProvider({ children }: { children: React.ReactNode }) {
                 instance.addEventListener('authorizationStatusDidChange', () => {
                     setIsAuthorized(instance.isAuthorized);
                 });
-            } catch (err) {
+            } catch (err: any) {
                 console.error("Error configuring MusicKit", err);
+                setInitializationError(err.message || 'Failed to configure MusicKit');
             }
         };
 
@@ -92,7 +102,7 @@ export function MusicKitProvider({ children }: { children: React.ReactNode }) {
     };
 
     return (
-        <MusicKitContext.Provider value={{ musicKit, isAuthorized, authorize, unauthorize }}>
+        <MusicKitContext.Provider value={{ musicKit, isAuthorized, authorize, unauthorize, initializationError }}>
             {children}
         </MusicKitContext.Provider>
     );

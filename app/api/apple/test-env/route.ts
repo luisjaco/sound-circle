@@ -21,7 +21,7 @@ export async function GET() {
     }
     const token = jwt.sign({}, privateKey, {
       algorithm: 'ES256',
-      expiresIn: '1h',
+      expiresIn: '180d',
       issuer: teamId,
       header: {
         alg: 'ES256',

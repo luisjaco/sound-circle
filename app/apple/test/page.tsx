@@ -27,7 +27,7 @@ interface Track {
 }
 
 export default function AppleMusicTestPage() {
-    const { musicKit, isAuthorized } = useMusicKit();
+    const { musicKit, isAuthorized, initializationError } = useMusicKit();
 
     // Data States
     const [playlists, setPlaylists] = useState<Playlist[]>([]);
@@ -168,10 +168,24 @@ export default function AppleMusicTestPage() {
                     </div>
 
                     <div className="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 backdrop-blur-sm">
-                        <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] ${isAuthorized ? "bg-green-500 text-green-500" : "bg-red-500 text-red-500"}`} />
-                        <span className="font-medium text-sm text-neutral-200">
-                            {isAuthorized ? "Connected" : "Disconnected"}
-                        </span>
+                        {initializationError ? (
+                            <>
+                                <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_currentColor]" />
+                                <span className="font-medium text-sm text-red-400">Error Init</span>
+                            </>
+                        ) : !musicKit ? (
+                            <>
+                                <Loader2 className="w-3 h-3 animate-spin text-yellow-500" />
+                                <span className="font-medium text-sm text-neutral-200">Initializing...</span>
+                            </>
+                        ) : (
+                            <>
+                                <div className={`w-3 h-3 rounded-full shadow-[0_0_10px_currentColor] ${isAuthorized ? "bg-green-500 text-green-500" : "bg-red-500 text-red-500"}`} />
+                                <span className="font-medium text-sm text-neutral-200">
+                                    {isAuthorized ? "Connected" : "Disconnected"}
+                                </span>
+                            </>
+                        )}
                     </div>
                 </header>
 
