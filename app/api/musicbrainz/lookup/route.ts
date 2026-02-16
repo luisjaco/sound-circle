@@ -2,11 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { resolveTracks, type TrackInput } from '@/lib/musicbrainz';
 
 /**
- * POST /api/musicbrainz/lookup
- *
  * Accepts an array of tracks and resolves each to a MusicBrainz recording ID.
  * Uses ISRC lookup first, then falls back to text search.
- *
  * Body: { tracks: TrackInput[] }
  * Response: { results: TrackResult[] }
  */
@@ -22,7 +19,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Cap at 50 tracks per request to prevent abuse
+        //Cap at 50 tracks per request to prevent abuse
         if (tracks.length > 50) {
             return NextResponse.json(
                 { error: 'Maximum 50 tracks per request' },

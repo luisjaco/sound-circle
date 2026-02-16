@@ -1,17 +1,15 @@
 /**
  * MusicBrainz API Helper Library
- *
  * Provides rate-limited lookups against the MusicBrainz API:
- * - ISRC-based recording lookup (primary strategy)
- * - Text search fallback by track name + artist name
- *
+ * -ISRC-based recording lookup (primary strategy)
+ * -Text search fallback by track name + artist name
  * Rate limit: max 1 request per second (MusicBrainz policy).
  */
 
 const MB_BASE = 'https://musicbrainz.org/ws/2';
 const USER_AGENT = 'SoundCircle/1.0.0 (https://github.com/luisjaco/sound-circle)';
 
-// ---------- Rate Limiter ----------
+//Rate Limiter
 
 let lastRequestTime = 0;
 
@@ -32,7 +30,7 @@ async function rateLimitedFetch(url: string): Promise<Response> {
     });
 }
 
-// ---------- Types ----------
+//Types
 
 export interface MBRecording {
     id: string; // MBID
@@ -65,7 +63,7 @@ export interface TrackResult {
     error?: string;
 }
 
-// ---------- ISRC Lookup ----------
+//ISRC Lookup
 
 export async function lookupByISRC(isrc: string): Promise<MBRecording | null> {
     try {
@@ -98,14 +96,14 @@ export async function lookupByISRC(isrc: string): Promise<MBRecording | null> {
     }
 }
 
-// ---------- Text Search Fallback ----------
+//Text Search Fallback
 
 export async function searchRecording(
     trackName: string,
     artistName: string
 ): Promise<MBRecording | null> {
     try {
-        // Build Lucene query: recording:"track name" AND artist:"artist name"
+        //Build query: recording:"track name" AND artist:"artist name"
         const query = `recording:"${escapeLucene(trackName)}" AND artist:"${escapeLucene(artistName)}"`;
         const url = `${MB_BASE}/recording?query=${encodeURIComponent(query)}&fmt=json&limit=1`;
 
@@ -121,7 +119,7 @@ export async function searchRecording(
         if (!recordings || recordings.length === 0) return null;
 
         const rec = recordings[0];
-        // Only accept if score is reasonably high
+        //Only accept if score is reasonably high
         if (rec.score !== undefined && rec.score < 80) return null;
 
         return {
@@ -139,7 +137,7 @@ export async function searchRecording(
     }
 }
 
-// ---------- Unified Resolver ----------
+//Unified Resolver
 
 export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
     try {
@@ -190,7 +188,7 @@ export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
     }
 }
 
-// ---------- Batch Resolver ----------
+//Batch Resolver
 
 export async function resolveTracks(tracks: TrackInput[]): Promise<TrackResult[]> {
     const results: TrackResult[] = [];
@@ -201,9 +199,8 @@ export async function resolveTracks(tracks: TrackInput[]): Promise<TrackResult[]
     return results;
 }
 
-// ---------- Helpers ----------
+//Helpers
 
 function escapeLucene(str: string): string {
-    // Escape Lucene special characters: + - && || ! ( ) { } [ ] ^ " ~ * ? : \ /
     return str.replace(/([+\-&|!(){}[\]^"~*?:\\/])/g, '\\$1');
 }
