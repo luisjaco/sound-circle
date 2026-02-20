@@ -11,6 +11,7 @@ export async function GET() {
             return NextResponse.json({ error: 'Missing Apple Music configuration' }, { status: 500 });
         }
 
+        // Handle both literal \n (escaped) and actual newlines
         const privateKey = privateKeyRaw.replace(/\\n/g, '\n');
 
         const token = jwt.sign({}, privateKey, {
@@ -26,6 +27,14 @@ export async function GET() {
         return NextResponse.json({ token });
     } catch (error) {
         console.error('Error generating Apple Music token:', error);
-        return NextResponse.json({ error: 'Failed to generate token' }, { status: 500 });
+        const err = error instanceof Error ? error : new Error(String(error));
+        return NextResponse.json({
+            error: 'Failed to generate token',
+            message: err.message,
+            // Check if key looks roughly valid (starts/ends correct) without exposing full key
+            keyDebug: process.env.APPLE_PRIVATE_KEY
+                ? `${process.env.APPLE_PRIVATE_KEY.substring(0, 30)}...`
+                : 'MISSING'
+        }, { status: 500 });
     }
 }

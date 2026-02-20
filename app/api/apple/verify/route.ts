@@ -6,19 +6,23 @@ export async function GET() {
 
     const teamId = process.env.APPLE_TEAM_ID;
     const keyId = process.env.APPLE_KEY_ID;
-    const privateKey = process.env.APPLE_PRIVATE_KEY;
+    const privateKeyRaw = process.env.APPLE_PRIVATE_KEY;
 
-    if (!teamId || !keyId || !privateKey) {
+    if (!teamId || !keyId || !privateKeyRaw) {
       return NextResponse.json({
         success: false,
         error: "Missing environment variables",
         envCheck: {
           hasTeamId: !!teamId,
           hasKeyId: !!keyId,
-          hasPrivateKey: !!privateKey
+          hasPrivateKey: !!privateKeyRaw
         }
       }, { status: 500 });
     }
+
+    // Handle both literal \n (escaped) and actual newlines
+    const privateKey = privateKeyRaw.replace(/\\n/g, '\n');
+
     const token = jwt.sign({}, privateKey, {
       algorithm: 'ES256',
       expiresIn: '180d',
