@@ -41,7 +41,8 @@ export interface MBRecording {
 }
 
 export interface TrackInput {
-    appleMusicId: string;
+    sourceId: string;
+    platform: 'apple' | 'spotify';
     name: string;
     artistName: string;
     isrc?: string;
@@ -53,7 +54,8 @@ export interface TrackInput {
 export type ResolveStatus = 'matched' | 'not_found' | 'error';
 
 export interface TrackResult {
-    appleMusicId: string;
+    sourceId: string;
+    platform: 'apple' | 'spotify';
     name: string;
     artistName: string;
     musicBrainzId: string | null;
@@ -155,7 +157,8 @@ export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
 
         if (recording) {
             return {
-                appleMusicId: track.appleMusicId,
+                sourceId: track.sourceId,
+                platform: track.platform,
                 name: track.name,
                 artistName: track.artistName,
                 musicBrainzId: recording.id,
@@ -166,7 +169,8 @@ export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
         }
 
         return {
-            appleMusicId: track.appleMusicId,
+            sourceId: track.sourceId,
+            platform: track.platform,
             name: track.name,
             artistName: track.artistName,
             musicBrainzId: null,
@@ -176,7 +180,8 @@ export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
         };
     } catch (err: any) {
         return {
-            appleMusicId: track.appleMusicId,
+            sourceId: track.sourceId,
+            platform: track.platform,
             name: track.name,
             artistName: track.artistName,
             musicBrainzId: null,
