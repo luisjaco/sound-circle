@@ -36,6 +36,9 @@ export interface MBRecording {
     id: string; // MBID
     title: string;
     artistCredit: string;
+    artistId?: string;       // Artist MBID
+    releaseId?: string;      // Release/Album MBID
+    releaseTitle?: string;   // Release/Album title
     firstReleaseDate?: string;
     length?: number; // ms
 }
@@ -59,6 +62,9 @@ export interface TrackResult {
     musicBrainzId: string | null;
     musicBrainzTitle: string | null;
     musicBrainzArtist: string | null;
+    musicBrainzArtistId: string | null;
+    musicBrainzReleaseId: string | null;
+    musicBrainzReleaseTitle: string | null;
     status: ResolveStatus;
     error?: string;
 }
@@ -67,7 +73,8 @@ export interface TrackResult {
 
 export async function lookupByISRC(isrc: string): Promise<MBRecording | null> {
     try {
-        const res = await rateLimitedFetch(`${MB_BASE}/isrc/${encodeURIComponent(isrc)}?inc=artist-credits&fmt=json`);
+        // Using /recording search by ISRC is preferred because the /isrc endpoint drops the 'releases' array in its responses
+        const res = await rateLimitedFetch(`${MB_BASE}/recording?query=isrc:${encodeURIComponent(isrc)}&fmt=json&limit=1`);
 
         if (!res.ok) {
             if (res.status === 404) return null;
@@ -87,6 +94,9 @@ export async function lookupByISRC(isrc: string): Promise<MBRecording | null> {
             artistCredit: rec['artist-credit']
                 ?.map((ac: any) => ac.name || ac.artist?.name)
                 .join(', ') || 'Unknown',
+            artistId: rec['artist-credit']?.[0]?.artist?.id,
+            releaseId: rec.releases?.[0]?.id,
+            releaseTitle: rec.releases?.[0]?.title,
             firstReleaseDate: rec['first-release-date'],
             length: rec.length,
         };
@@ -128,6 +138,9 @@ export async function searchRecording(
             artistCredit: rec['artist-credit']
                 ?.map((ac: any) => ac.name || ac.artist?.name)
                 .join(', ') || 'Unknown',
+            artistId: rec['artist-credit']?.[0]?.artist?.id,
+            releaseId: rec.releases?.[0]?.id,
+            releaseTitle: rec.releases?.[0]?.title,
             firstReleaseDate: rec['first-release-date'],
             length: rec.length,
         };
@@ -161,6 +174,9 @@ export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
                 musicBrainzId: recording.id,
                 musicBrainzTitle: recording.title,
                 musicBrainzArtist: recording.artistCredit,
+                musicBrainzArtistId: recording.artistId || null,
+                musicBrainzReleaseId: recording.releaseId || null,
+                musicBrainzReleaseTitle: recording.releaseTitle || null,
                 status: 'matched',
             };
         }
@@ -172,6 +188,9 @@ export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
             musicBrainzId: null,
             musicBrainzTitle: null,
             musicBrainzArtist: null,
+            musicBrainzArtistId: null,
+            musicBrainzReleaseId: null,
+            musicBrainzReleaseTitle: null,
             status: 'not_found',
         };
     } catch (err: any) {
@@ -182,6 +201,9 @@ export async function resolveTrack(track: TrackInput): Promise<TrackResult> {
             musicBrainzId: null,
             musicBrainzTitle: null,
             musicBrainzArtist: null,
+            musicBrainzArtistId: null,
+            musicBrainzReleaseId: null,
+            musicBrainzReleaseTitle: null,
             status: 'error',
             error: err.message,
         };

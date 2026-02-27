@@ -6,7 +6,7 @@ import AppleMusicAuthBtn from '@/components/AppleMusicAuthBtn';
 import {
     ListMusic, Loader2, PlayCircle, Music, Clock, X,
     Plus, CheckCircle2, XCircle, ExternalLink, PlusCircle, Trash2,
-    ArrowLeft
+    ArrowLeft, Upload, Database
 } from 'lucide-react';
 
 // ---------- Types ----------
@@ -39,9 +39,15 @@ interface ResolvedTrack {
     musicBrainzId: string | null;
     musicBrainzTitle: string | null;
     musicBrainzArtist: string | null;
+    musicBrainzArtistId: string | null;
+    musicBrainzReleaseId: string | null;
+    musicBrainzReleaseTitle: string | null;
     status: 'resolving' | 'matched' | 'not_found' | 'error';
     artworkUrl?: string | null;
     error?: string;
+    isrc?: string | null;
+    uploadedToSupabase?: boolean;
+    supabaseError?: string;
 }
 
 type ViewMode = 'home' | 'playlists' | 'recent' | 'playlist-detail';
@@ -177,12 +183,48 @@ export default function AppleMusicLibraryPage() {
 
     // ---------- MusicBrainz ----------
 
+    const uploadToSupabase = async (resolvedTrack: ResolvedTrack): Promise<{ uploaded: boolean; error?: string }> => {
+        try {
+            const res = await fetch('/api/songs/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    songs: [{
+                        apple_music_id: resolvedTrack.appleMusicId,
+                        musicbrainz_id: resolvedTrack.musicBrainzId,
+                        musicbrainz_artist_id: resolvedTrack.musicBrainzArtistId || null,
+                        musicbrainz_release_id: resolvedTrack.musicBrainzReleaseId || null,
+                        isrc: resolvedTrack.isrc || null,
+                        name: resolvedTrack.name,
+                        artist_name: resolvedTrack.artistName,
+                    }],
+                }),
+            });
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                return { uploaded: false, error: errData.error || `Upload failed (${res.status})` };
+            }
+            const data = await res.json();
+            const detail = data.details?.[0];
+            if (detail?.action === 'inserted') {
+                return { uploaded: true };
+            } else {
+                // 'skipped' means it already exists — that's not an error, still counts as success
+                return { uploaded: true, error: detail?.reason };
+            }
+        } catch (err: any) {
+            return { uploaded: false, error: err.message };
+        }
+    };
+
     const resolveAndAddTrack = async (track: Track) => {
         if (isTrackAdded(track.id) || isTrackResolving(track.id)) return;
         const artworkUrl = getArtworkUrl(track.attributes.artwork?.url, 120);
         const placeholder: ResolvedTrack = {
             appleMusicId: track.id, name: track.attributes.name, artistName: track.attributes.artistName,
-            musicBrainzId: null, musicBrainzTitle: null, musicBrainzArtist: null, status: 'resolving', artworkUrl,
+            musicBrainzId: null, musicBrainzTitle: null, musicBrainzArtist: null,
+            musicBrainzArtistId: null, musicBrainzReleaseId: null, musicBrainzReleaseTitle: null,
+            status: 'resolving', artworkUrl,
         };
         setAddedSongs(prev => [...prev, placeholder]);
         setResolvingIds(prev => new Set(prev).add(track.id));
@@ -201,7 +243,21 @@ export default function AppleMusicLibraryPage() {
             });
             if (!mbRes.ok) throw new Error('MusicBrainz lookup failed');
             const result = (await mbRes.json()).results?.[0];
-            if (result) setAddedSongs(prev => prev.map(s => s.appleMusicId === track.id ? { ...s, ...result, artworkUrl } : s));
+            if (result) {
+                // Update with MusicBrainz result + ISRC
+                const updatedTrack: ResolvedTrack = { ...placeholder, ...result, artworkUrl, isrc: isrc || null };
+                setAddedSongs(prev => prev.map(s => s.appleMusicId === track.id ? updatedTrack : s));
+
+                // If matched, upload to Supabase
+                if (result.status === 'matched') {
+                    const { uploaded, error: uploadErr } = await uploadToSupabase(updatedTrack);
+                    setAddedSongs(prev => prev.map(s => s.appleMusicId === track.id ? {
+                        ...s,
+                        uploadedToSupabase: uploaded,
+                        supabaseError: uploadErr,
+                    } : s));
+                }
+            }
         } catch (err: any) {
             setAddedSongs(prev => prev.map(s => s.appleMusicId === track.id ? { ...s, status: 'error' as const, error: err.message } : s));
         } finally {
@@ -222,9 +278,25 @@ export default function AppleMusicLibraryPage() {
 
     // ---------- Shared UI Pieces ----------
 
+    const SupabaseBadge = ({ track }: { track: ResolvedTrack }) => {
+        if (track.status !== 'matched') return null;
+        if (track.uploadedToSupabase === undefined) {
+            return <span className="inline-flex items-center gap-1 text-xs text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full"><Loader2 className="w-3 h-3 animate-spin" /> Saving</span>;
+        }
+        if (track.uploadedToSupabase) {
+            return <span className="inline-flex items-center gap-1 text-xs text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded-full" title={track.supabaseError || 'Saved to database'}><Database className="w-3 h-3" /> {track.supabaseError ? 'Exists' : 'Saved'}</span>;
+        }
+        return <span className="inline-flex items-center gap-1 text-xs text-orange-400 bg-orange-400/10 px-2 py-0.5 rounded-full" title={track.supabaseError || 'Upload failed'}><XCircle className="w-3 h-3" /> DB Error</span>;
+    };
+
     const StatusBadge = ({ track }: { track: ResolvedTrack }) => {
         if (track.status === 'resolving') return <span className="inline-flex items-center gap-1 text-xs text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-full"><Loader2 className="w-3 h-3 animate-spin" /> Resolving</span>;
-        if (track.status === 'matched') return <a href={`https://musicbrainz.org/recording/${track.musicBrainzId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full hover:bg-green-400/20 transition-colors" onClick={e => e.stopPropagation()}><CheckCircle2 className="w-3 h-3" /> Matched <ExternalLink className="w-2.5 h-2.5" /></a>;
+        if (track.status === 'matched') return (
+            <div className="flex items-center gap-1.5">
+                <a href={`https://musicbrainz.org/recording/${track.musicBrainzId}`} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full hover:bg-green-400/20 transition-colors" onClick={e => e.stopPropagation()}><CheckCircle2 className="w-3 h-3" /> Matched <ExternalLink className="w-2.5 h-2.5" /></a>
+                <SupabaseBadge track={track} />
+            </div>
+        );
         if (track.status === 'not_found') return <span className="inline-flex items-center gap-1 text-xs text-neutral-400 bg-neutral-400/10 px-2 py-0.5 rounded-full"><XCircle className="w-3 h-3" /> Not Found</span>;
         return <span className="inline-flex items-center gap-1 text-xs text-red-400 bg-red-400/10 px-2 py-0.5 rounded-full"><XCircle className="w-3 h-3" /> Error</span>;
     };
