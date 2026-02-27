@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Poppins:wght@600;800&display=swap');
-
-@tailwind base;
-@tailwind components;
+@import "tailwindcss";
 @tailwind utilities;
 
 :root{
@@ -316,4 +314,3 @@ a.btn-primary, a.btn-ghost, a.btn-base { text-decoration: none; }
 .form-panel > .mt-6 > .text-xs.text-\[var\(--muted\)\].text-center {
   margin-top: 4.0rem;
 }
-
