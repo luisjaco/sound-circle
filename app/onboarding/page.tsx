@@ -1,399 +1,484 @@
 "use client";
+import { useState, useRef } from 'react';
+import { ArrowLeft, ArrowRight, User, Disc3 } from 'lucide-react';
 
-import React, { useEffect, useRef, useState } from "react";
-import clsx from "clsx";
-import Logo from "@/components/Logo";
+interface OnboardingPageProps {
+  onNavigate: (page: string) => void;
+}
 
-const GENRES = [
-  "Rock","Pop","Hip-Hop","Electronic","Indie","Jazz","Classical",
-  "Metal","R&B","Country","Reggae","Folk","Punk","Soul","Blues"
-];
-
-export default function OnboardingPage() {
-  const [index, setIndex] = useState(0);
-  const [titleVisible, setTitleVisible] = useState(false);
-
-  const [username, setUsername] = useState("");
-  const [usernameTouched, setUsernameTouched] = useState(false);
-  const [usernameError, setUsernameError] = useState<string | null>(null);
-  const usernameRef = useRef<HTMLInputElement | null>(null);
-
-  const [avatarFile, setAvatarFile] = useState<File | null>(null);
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-
+export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [username, setUsername] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [fullNameError, setFullNameError] = useState('');
+  const [bio, setBio] = useState('');
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [artistQuery, setArtistQuery] = useState("");
-  const [artistPicks, setArtistPicks] = useState<string[]>([]);
+  const [genreError, setGenreError] = useState('');
+  const [selectedArtists, setSelectedArtists] = useState<string[]>([]);
+  const [artistError, setArtistError] = useState('');
+  const [artistSearchInput, setArtistSearchInput] = useState('');
+  const [connectedServices, setConnectedServices] = useState<string[]>([]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    const t = setTimeout(() => setTitleVisible(true), 120);
-    return () => clearTimeout(t);
-  }, []);
+  const totalSteps = 6;
 
-  useEffect(() => {
-    if (index === 0) usernameRef.current?.focus();
-  }, [index]);
+  const genres = [
+    'Rock', 'Pop', 'Hip-Hop',
+    'Electronic', 'Indie', 'Jazz',
+    'Classical', 'Metal', 'R&B',
+    'Country', 'Reggae', 'Folk',
+    'Punk', 'Soul', 'Blues'
+  ];
 
-  useEffect(() => {
-    if (!avatarFile) { setAvatarPreview(null); return; }
-    const url = URL.createObjectURL(avatarFile);
-    setAvatarPreview(url);
-    return () => URL.revokeObjectURL(url);
-  }, [avatarFile]);
+  const validateUsername = (value: string): boolean => {
+    setUsernameError('');
+    
+    if (!value || value.trim() === '') {
+      setUsernameError('Username is required');
+      return false;
+    }
+    
+    if (value.length < 3) {
+      setUsernameError('Username must be at least 3 characters');
+      return false;
+    }
+    
+    if (value.length > 20) {
+      setUsernameError('Username must be 20 characters or less');
+      return false;
+    }
+    
+    if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+      setUsernameError('Username can only contain letters, numbers, and underscores');
+      return false;
+    }
+    
+    return true;
+  };
 
-  function validateUsername(value = username) {
-    const trimmed = value.trim();
-    if (!trimmed) return "Please enter a username.";
-    if (trimmed.length < 2) return "Username is too short.";
-    if (!/^[\w\d._-]+$/.test(trimmed)) return "Only letters, numbers, ., _, - allowed.";
-    return null;
-  }
+  const validateFullName = (value: string): boolean => {
+    setFullNameError('');
+    
+    if (!value || value.trim() === '') {
+      setFullNameError('Full name is required');
+      return false;
+    }
+    
+    return true;
+  };
 
-  function next() {
-    if (index === 0) {
-      setUsernameTouched(true);
-      const err = validateUsername();
-      setUsernameError(err);
-      if (err) {
-        const card = document.querySelector(".auth-card");
-        if (card) card.classList.add("glow");
-        setTimeout(() => { if (card) card.classList.remove("glow"); }, 900);
+  const handleNext = () => {
+    // Step 1: Validate username (required)
+    if (currentStep === 1) {
+      if (!validateUsername(username)) {
         return;
       }
     }
-    setIndex((i) => Math.min(i + 1, slides.length - 1));
-  }
 
-  function prev() { setIndex((i) => Math.max(i - 1, 0)); }
+    // Step 2: Validate full name (required)
+    if (currentStep === 2) {
+      if (!validateFullName(fullName)) {
+        return;
+      }
+    }
 
-  function toggleGenre(g: string) {
-    setSelectedGenres((prev) => {
-      if (prev.includes(g)) return prev.filter((x) => x !== g);
-      if (prev.length >= 3) return prev;
-      return [...prev, g];
-    });
-  }
+    // Step 3: Profile photo is optional, can skip
+    
+    // Step 4: Validate at least 1 genre selected (required)
+    if (currentStep === 4) {
+      setGenreError('');
+      if (selectedGenres.length === 0) {
+        setGenreError('Select at least one genre');
+        return;
+      }
+    }
 
-  function addArtist(name: string) {
-    if (!name) return;
-    if (artistPicks.includes(name) || artistPicks.length >= 3) return;
-    setArtistPicks((p) => [...p, name]);
-    setArtistQuery("");
-  }
-  function removeArtist(name: string) {
-    setArtistPicks((p) => p.filter((x) => x !== name));
-  }
+    // Step 5: Validate at least 1 artist selected (required)
+    if (currentStep === 5) {
+      setArtistError('');
+      if (selectedArtists.length === 0) {
+        setArtistError('Select at least one artist');
+        return;
+      }
+    }
 
-  async function finish() {
-    console.log({ username, avatarFile, selectedGenres, artistPicks });
-    alert("Onboarding saved locally (console). Hook finish() to server.");
-  }
+    // Step 6: Music services optional
+    
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      // Complete onboarding
+      onNavigate('home');
+    }
+  };
 
-  const slides = [
-    <div key="username" className="p-2">
-      <div className="mb-4">
-        <h2 className={clsx("text-3xl font-extrabold transition-opacity", titleVisible ? "opacity-100" : "opacity-0")}>
-          Welcome to <span className="text-white">Sound</span><span className="text-[var(--brand)]">Circle</span>
-        </h2>
-        <p className="hero-sub mt-3">What should we call you?</p>
-      </div>
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
-      <div className="mt-6">
-        <label className="input-label">Username</label>
-        <div className={clsx(
-          "input-with-icon",
-          usernameTouched && !usernameError && username ? "input-valid" : "",
-          usernameTouched && usernameError ? "input-invalid" : ""
-        )}>
-          <div className="input-icon">@</div>
-          <input
-            ref={usernameRef}
-            value={username}
-            onChange={(e) => { setUsername(e.target.value); if (usernameTouched) setUsernameError(validateUsername(e.target.value)); }}
-            onBlur={() => { setUsernameTouched(true); setUsernameError(validateUsername()); }}
-            onKeyDown={(e) => { if (e.key === "Enter") next(); }}
-            placeholder="yourhandle"
-            className="input-field"
-            aria-label="Username"
-          />
-        </div>
+  const toggleGenre = (genre: string) => {
+    if (selectedGenres.includes(genre)) {
+      setSelectedGenres(selectedGenres.filter(g => g !== genre));
+    } else {
+      if (selectedGenres.length < 3) {
+        setSelectedGenres([...selectedGenres, genre]);
+      }
+    }
+  };
 
-        {usernameTouched && usernameError ? (
-          <p className="text-xs text-red-400 mt-2">{usernameError}</p>
-        ) : null}
+  const handleAddArtist = () => {
+    if (artistSearchInput.trim() && selectedArtists.length < 3) {
+      if (!selectedArtists.includes(artistSearchInput.trim())) {
+        setSelectedArtists([...selectedArtists, artistSearchInput.trim()]);
+        setArtistSearchInput('');
+      }
+    }
+  };
 
-        <p className="text-xs text-[var(--muted)] mt-2">This will be shown to other users — keep it short.</p>
-      </div>
-    </div>,
+  const handleRemoveArtist = (artist: string) => {
+    setSelectedArtists(selectedArtists.filter(a => a !== artist));
+  };
 
-    <div key="avatar" className="p-2">
-      <div className="mb-4">
-        <h3 className="text-2xl font-extrabold">Profile photo</h3>
-        <p className="hero-sub mt-3">Add a photo so people recognise you.</p>
-      </div>
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePhoto(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-      <div className="mt-6 flex flex-col items-center gap-4">
-        <div className="w-36 h-36 rounded-full bg-[rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden border border-[rgba(255,255,255,0.04)]">
-          {avatarPreview ? <img src={avatarPreview} alt="avatar preview" className="w-full h-full object-cover" /> : <div className="text-[var(--muted)]">No photo</div>}
-        </div>
-        <div style={{ height: 32 }} />
-        <label className="inline-flex items-center gap-2 cursor-pointer">
-          <input type="file" accept="image/*" className="hidden" onChange={(e) => setAvatarFile(e.target.files?.[0] ?? null)} />
-          <span className="px-7 py-3 rounded-full bg-[rgba(255,255,255,0.08)] border border-[rgba(255,255,255,0.12)] text-base hover:bg-[rgba(255,255,255,0.12)] transition">
-            Upload photo
-          </span>
-        </label>
-        <div style={{ height: 8 }} />
-        <div className="text-xs text-[var(--muted)] text-center">JPG, PNG — up to 5MB. You can change this later.</div>
-      </div>
-    </div>,
+  const handleSkipPhoto = () => {
+    setProfilePhoto(null);
+    handleNext();
+  };
 
-    <div key="genres" className="p-2">
-      <div className="mb-4">
-        <h3 className="text-2xl font-extrabold">Pick up to 3 genres</h3>
-        <p className="hero-sub mt-3">These help tailor your feed.</p>
-      </div>
+  const toggleService = (service: string) => {
+    if (connectedServices.includes(service)) {
+      setConnectedServices(connectedServices.filter(s => s !== service));
+    } else {
+      setConnectedServices([...connectedServices, service]);
+    }
+  };
 
-      <div className="mt-6 genre-row">
-        <div className="genre-grid">
-          {GENRES.map((g) => {
-            const active = selectedGenres.includes(g);
-            return (
-              <button
-                type="button"
-                key={g}
-                onClick={() => toggleGenre(g)}
-                className={clsx(
-                  "genre-btn",
-                  active
-                    ? "genre-active bg-[rgba(16,183,89,0.25)] border-[rgba(16,183,89,0.55)] shadow-[0_0_0_1px_rgba(16,183,89,0.35)] text-white"
-                    : "bg-[rgba(255,255,255,0.08)] border-[rgba(255,255,255,0.12)] hover:bg-[rgba(255,255,255,0.14)] text-white/90"
-                )}
-              >
-                {g}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="text-xs text-[var(--muted)] mt-4">Selected: <strong className="text-white">{selectedGenres.join(", ") || "None"}</strong></div>
-    </div>,
-
-    <div key="artists" className="p-2">
-      <div className="mb-4">
-        <h3 className="text-2xl font-extrabold">Pick up to 3 artists</h3>
-        <p className="hero-sub mt-3">Search for artists to follow (MusicBrainz later).</p>
-      </div>
-
-      <div className="mt-6">
-        <label className="input-label">Search artists</label>
-
-        {}
-        <div className="input-with-icon" style={{ padding: 0 }}>
-          <input
-            value={artistQuery}
-            onChange={(e) => setArtistQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const q = artistQuery.trim();
-                if (q) addArtist(q);
-              }
-            }}
-            placeholder="Type an artist and press Enter"
-            aria-label="Search artists"
-            className="input-field"
-            style={{ padding: "12px 14px", width: "100%" }}
-          />
-        </div>
-            <div style={{ height: 8 }} />
-        {}
-        <div className="mt-4 flex justify-center">
-          <button
-            type="button"
-            onClick={() => {
-              const q = artistQuery.trim();
-              if (q) addArtist(q);
-            }}
-            className="w-full max-w-xs btn-primary"
-            aria-label="Add artist"
-          >
-            Add
-          </button>
-        </div>
-
-        <div className="artist-list mt-5">
-          {artistPicks.length === 0 ? (
-            <div className="text-[var(--muted)]">No artists chosen yet</div>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {artistPicks.map((a) => (
-                <div
-                  key={a}
-                  className="artist-token bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.04)] rounded-full px-3 py-1 flex items-center gap-2 text-white"
-                >
-                  <span className="text-sm">{a}</span>
-                  <button
-                    onClick={() => removeArtist(a)}
-                    aria-label={`Remove ${a}`}
-                    className="text-xs text-[var(--muted)] hover:text-white"
-                  >
-                    ×
-                  </button>
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <h2 className="text-white mb-2">
+                Welcome to <span className="font-bold">Sound<span className="text-[#1DB954]">Circle</span></span>
+              </h2>
+              <p className="text-gray-400 text-lg mb-8">What should we call you?</p>
+              
+              <div className="mb-2">
+                <label className="text-white font-medium block mb-3">Username</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">@</span>
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      if (usernameError) setUsernameError('');
+                    }}
+                    onBlur={() => validateUsername(username)}
+                    placeholder="User_Name"
+                    className="w-full bg-[#282828] text-white pl-10 pr-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors"
+                  />
                 </div>
-              ))}
+                {usernameError && (
+                  <p className="text-red-500 text-sm mt-2">{usernameError}</p>
+                )}
+              </div>
+              <p className="text-gray-500 text-sm">This will be shown to other users — keep it short.</p>
             </div>
-          )}
-        </div>
-      </div>
-    </div>,
+          </div>
+        );
 
-    <div key="connect" className="p-2">
-      <div className="mb-4">
-        <h3 className="text-2xl font-extrabold">Connect music services</h3>
-        <p className="hero-sub mt-3">Optionally connect Spotify or Apple Music to import your listening history.</p>
-      </div>
+      case 2:
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <h2 className="text-white mb-2">Tell us about yourself</h2>
+              <p className="text-gray-400 text-lg mb-8">Help others get to know you.</p>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="text-white font-medium block mb-3">Full name</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      if (fullNameError) setFullNameError('');
+                    }}
+                    onBlur={() => validateFullName(fullName)}
+                    placeholder="Your Name"
+                    className="w-full bg-[#282828] text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors"
+                  />
+                  {fullNameError && (
+                    <p className="text-red-500 text-sm mt-2">{fullNameError}</p>
+                  )}
+                </div>
 
-      <div className="mt-6 space-y-4">
-        {}
-        <button
-          className="w-full rounded-full py-4 flex items-center justify-center gap-3 bg-[var(--brand)] transition"
-          onClick={() => { /* TODO: open spotify OAuth */ alert("Spotify connect flow (stub)"); }}
-          aria-label="Connect with Spotify"
-          style={{ boxShadow: "none" }}
-        >
-          <img
-            src="/brand/spotify.svg"
-            alt="Spotify logo"
-            className="h-5 w-auto max-w-[260px] object-contain"
-          />
+                <div>
+                  <label className="text-white font-medium block mb-3">Bio</label>
+                  <textarea
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    placeholder="Music enthusiast | Vinyl collector | Always discovering new sounds"
+                    rows={3}
+                    maxLength={150}
+                    className="w-full bg-[#282828] text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors resize-none"
+                  />
+                  <p className="text-gray-500 text-xs mt-2">{bio.length}/150 characters</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
-          <span className="text-white font-semibold text-lg"></span>
-        </button>
-            <div style={{ height: 8 }} />
-        {}
-        <button
-          className="w-full rounded-full py-4 flex items-center justify-center gap-3 bg-[rgba(255,255,255,0.92)] transition"
-          onClick={() => { /* TODO: open apple music connect */ alert("Apple Music connect flow (stub)"); }}
-          aria-label="Connect with Apple Music"
-          style={{ boxShadow: "none" }}
-        >
-          <img
-            src="/brand/apple-music.svg"
-            alt="Apple Music logo"
-            className="h-5 w-auto max-w-[160px] object-contain"
-          />
+      case 3:
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <h2 className="text-white mb-2">Profile photo</h2>
+              <p className="text-gray-400 text-lg mb-8">Add a photo so people recognise you.</p>
+              
+              <div className="flex flex-col items-center gap-6">
+                {profilePhoto ? (
+                  <div className="relative">
+                    <img
+                      src={profilePhoto}
+                      alt="Profile"
+                      className="w-32 h-32 rounded-full object-cover"
+                    />
+                    <button
+                      onClick={() => setProfilePhoto(null)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors text-2xl leading-none"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-[#282828] flex items-center justify-center">
+                    <User className="w-16 h-16 text-gray-600" />
+                  </div>
+                )}
 
-          <span className="text-black font-semibold text-lg"></span>
-        </button>
-          <div style={{ height: 32 }} />
-        <div className="text-xs text-[var(--muted)] mt-12 text-center">You can connect later if you'd prefer.</div>
-      </div>
-    </div>,
+                <div className="flex flex-col gap-3 w-full">
+                  <button
+                    onClick={handleSkipPhoto}
+                    className="w-full py-3 text-gray-400 hover:text-white transition-colors"
+                  >
+                    No photo
+                  </button>
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full bg-[#282828] hover:bg-[#383838] text-white py-3 rounded-lg transition-colors"
+                  >
+                    Upload photo
+                  </button>
+                  <p className="text-gray-500 text-xs text-center">
+                    JPG, PNG — up to 5MB. You can change this later.
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
-    <div key="done" className="p-2">
-      <div className="mb-4">
-        <h3 className="text-2xl font-extrabold">All set</h3>
-        <p className="hero-sub mt-3">Review & finish</p>
-      </div>
+      case 4:
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <h2 className="text-white mb-2">Pick up to 3 genres</h2>
+              <p className="text-gray-400 text-lg mb-8">These help tailor your feed.</p>
+              
+              <div className="grid grid-cols-3 gap-3 mb-6">
+                {genres.map((genre) => (
+                  <button
+                    key={genre}
+                    onClick={() => toggleGenre(genre)}
+                    className={`py-3 px-4 rounded-full text-sm font-medium transition-all ${
+                      selectedGenres.includes(genre)
+                        ? 'bg-[#1DB954] text-white'
+                        : 'bg-[#282828] text-white hover:bg-[#383838]'
+                    }`}
+                  >
+                    {genre}
+                  </button>
+                ))}
+              </div>
+              
+              {genreError && (
+                <p className="text-red-500 text-sm mt-2">{genreError}</p>
+              )}
+            </div>
+          </div>
+        );
 
-      <div className="mt-6 space-y-4">
-        <div>
-          <div className="text-xs text-[var(--muted)]">Username:</div>
-          <div style={{ height: 4 }} />
-          <div className="mt-1"><strong className="text-white">@{username || "—"}</strong></div>
-        </div>
+      case 5:
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <h2 className="text-white mb-2">Pick up to 3 artists</h2>
+              <p className="text-gray-400 text-lg mb-8">Search for artists to follow (MusicBrainz later).</p>
+              
+              <div className="mb-6">
+                <label className="text-gray-400 text-sm block mb-3">Search artists</label>
+                <input
+                  type="text"
+                  value={artistSearchInput}
+                  onChange={(e) => setArtistSearchInput(e.target.value)}
+                  onKeyUp={(e) => e.key === 'Enter' && handleAddArtist()}
+                  placeholder="Type an artist and press Enter"
+                  className="w-full bg-[#282828] text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors mb-4"
+                />
+                <button
+                  onClick={handleAddArtist}
+                  disabled={!artistSearchInput.trim() || selectedArtists.length >= 3}
+                  className="w-full bg-[#1DB954] hover:bg-[#1ed760] disabled:bg-gray-700 disabled:cursor-not-allowed text-white py-3 rounded-full font-medium transition-colors"
+                >
+                  Add
+                </button>
+              </div>
 
-        <div>
-          <div style={{ height: 12 }} />
-          <div className="text-xs text-[var(--muted)]">Genres:</div>
-          <div style={{ height: 4 }} />
-          <div className="mt-1"><span className="text-white">{selectedGenres.join(", ") || "—"}</span></div>
-        </div>
+              <div className="space-y-3">
+                {selectedArtists.length === 0 ? (
+                  <p className="text-gray-500 text-sm">No artists chosen yet</p>
+                ) : (
+                  selectedArtists.map((artist, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between bg-[#282828] p-3 rounded-lg"
+                    >
+                      <span className="text-white">{artist}</span>
+                      <button
+                        onClick={() => handleRemoveArtist(artist)}
+                        className="text-red-500 hover:text-red-400 text-xl"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
 
-        <div>
-          <div style={{ height: 12 }} />
-          <div className="text-xs text-[var(--muted)]">Artists:</div>
-          <div style={{ height: 4 }} />
-          <div className="mt-1"><span className="text-white">{artistPicks.join(", ") || "—"}</span></div>
-        </div>
+              {artistError && (
+                <p className="text-red-500 text-sm mt-2">{artistError}</p>
+              )}
+            </div>
+          </div>
+        );
 
-        {}
-        <div style={{ height: 32 }} />
-        <div className="mt-4 text-[var(--muted)] text-sm">Tap the arrow to finish!</div>
-      </div>
-    </div>
-  ];
+      case 6:
+        return (
+          <div className="flex flex-col h-full">
+            <div className="flex-1">
+              <h2 className="text-white mb-2">Connect music services</h2>
+              <p className="text-gray-400 text-lg mb-8">
+                Optionally connect Spotify or Apple Music to import your listening history.
+              </p>
+              
+              <div className="space-y-4 mb-6">
+                <button
+                  onClick={() => toggleService('spotify')}
+                  className={`w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors ${
+                    connectedServices.includes('spotify')
+                      ? 'bg-[#1DB954] text-black'
+                      : 'bg-[#1DB954] hover:bg-[#1ed760] text-black'
+                  }`}
+                >
+                  <img
+                    src="/brand/spotify.svg"
+                    alt="Spotify"
+                    className="w-6 h-6 shrink-0 scale-[10.6] object-contain"
+                  />
+              </button>
+                <button
+                  onClick={() => toggleService('applemusic')}
+                  className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors"
+                >
+                  <img
+                    src="/brand/apple-music.svg"
+                    alt="Apple Music"
+                    className="w-6 h-6 shrink-0 scale-[6.6] object-contain"
+                  />
+          </button>
+              </div>
+
+              <p className="text-gray-500 text-sm text-center">
+                You can connect later if you'd prefer.
+              </p>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-      <div className="auth-wrapper w-full max-w-xl mx-auto">
-        <div className={clsx("auth-card")}>
-          <div className="text-center mb-4">
-            <Logo className="mx-auto mb-4 animate-spin-slow" />
-            <div className="text-sm text-[var(--muted)]">Step {Math.min(index + 1, slides.length)}/{slides.length}</div>
-            <h1 className="text-3xl font-extrabold mt-2">Complete your profile</h1>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-2xl bg-[#1a1a1a] rounded-3xl p-8 md:p-12 min-height:600px flex flex-col">
+        {/* Header with Icon and Step */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center mb-4">
+            <Disc3 className="w-20 h-20 text-[#1DB954] animate-spin" style={{ animationDuration: '8s' }} />
           </div>
+          <p className="text-gray-400 text-sm">Step {currentStep}/{totalSteps}</p>
+        </div>
 
-          <div className="relative overflow-hidden" style={{ minHeight: 300 }}>
-            <div
-              className="flex transition-transform duration-400 ease-in-out"
-              style={{ width: `${slides.length * 100}%`, transform: `translateX(-${index * (100 / slides.length)}%)` }}
-            >
-              {slides.map((s, i) => (
-                <div key={i} style={{ width: `${100 / slides.length}%` }} className="px-2 py-4">
-                  <div className="form-panel">
-                    {s}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {/* Title */}
+        <h1 className="text-3xl md:text-4xl font-bold text-center text-white mb-8">
+          Complete your profile
+        </h1>
 
-          <div className="mt-6 flex items-center justify-between">
-            <div>
-              {index > 0 ? (
-                <button
-                  onClick={prev}
-                  aria-label="Back"
-                  className="onboard-arrow bg-[rgba(255,255,255,0.06)] text-white shadow-none hover:bg-[rgba(255,255,255,0.08)]"
-                  style={{ boxShadow: "none" }}
-                >
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path
-                      d="M19 12H5M11 19l-7-7 7-7"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </button>
-              ) : (
-                <div />
-              )}
-            </div>
+        {/* Content */}
+        <div className="flex-1 mb-8">
+          {renderStepContent()}
+        </div>
 
-            <div className="onboard-footer-right">
-              {index < slides.length - 1 ? (
-                <button onClick={next} className="onboard-arrow bg-[var(--brand)] text-black" aria-label="Next">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              ) : (
-                <button onClick={finish} className="onboard-arrow bg-[var(--brand)] text-black" aria-label="Finish">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </button>
-              )}
-            </div>
-          </div>
+        {/* Navigation Buttons */}
+        <div className="flex justify-between items-center">
+          <button
+            onClick={handleBack}
+            disabled={currentStep === 1}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${
+              currentStep === 1
+                ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                : 'bg-[#282828] text-white hover:bg-[#383838]'
+            }`}
+          >
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+
+          <button
+            onClick={handleNext}
+            className="w-14 h-14 rounded-full bg-[#1DB954] hover:bg-[#1ed760] text-black flex items-center justify-center transition-colors"
+          >
+            <ArrowRight className="w-6 h-6" />
+          </button>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
 
