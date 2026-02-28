@@ -16,8 +16,8 @@ export default function OnboardingPage() {
   const [titleVisible, setTitleVisible] = useState(false);
 
   const [username, setUsername] = useState("");
-  const [usernameTouched, setUsernameTouched] = useState(false);
   const [usernameError, setUsernameError] = useState<string | null>(null);
+  const [usernameExistsError, setUsernameExistsError] = useState(false);
   const usernameRef = useRef<HTMLInputElement | null>(null);
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
@@ -43,20 +43,44 @@ export default function OnboardingPage() {
     return () => URL.revokeObjectURL(url);
   }, [avatarFile]);
 
-  function validateUsername(value = username) {
-    const trimmed = value.trim();
-    if (!trimmed) return "Please enter a username.";
-    if (trimmed.length < 2) return "Username is too short.";
-    if (!/^[\w\d._-]+$/.test(trimmed)) return "Only letters, numbers, ., _, - allowed.";
+  async function validateUsername() {
+
+    // check if username exists
+    if (!username) return;
+
+    const res = await fetch(`/api/supabase/users?username=${encodeURIComponent(username)}`);
+
+    const data = await res.json();
+    if (!res.ok) {
+      setUsernameError('There was an error validating this username.');
+      return false;
+    }
+    else if (data.length > 0) {
+      setUsernameError('This username already exists.')
+      setUsernameExistsError(true);
+      return false;
+    }
+    else {
+      setUsernameExistsError(false);
+      return true;
+    }
+
+  }
+
+  function checkUsername(user = username) {
+    if (!user) return "Please enter a username.";
+    if (user.length < 2) return "Username is too short.";
+    if (!/^[\w.-]+$/.test(user)) return "Only letters, numbers, and special characters (., _, or -) allowed.";
     return null;
   }
 
-  function next() {
+  async function next() {
+
+    // slideUsername check
     if (index === 0) {
-      setUsernameTouched(true);
-      const err = validateUsername();
-      setUsernameError(err);
-      if (err) {
+      const usernameFormatError = checkUsername();
+      const usernameExistsError = !(await validateUsername());
+      if (usernameExistsError || usernameFormatError) {
         const card = document.querySelector(".auth-card");
         if (card) card.classList.add("glow");
         setTimeout(() => { if (card) card.classList.remove("glow"); }, 900);
@@ -82,6 +106,7 @@ export default function OnboardingPage() {
     setArtistPicks((p) => [...p, name]);
     setArtistQuery("");
   }
+
   function removeArtist(name: string) {
     setArtistPicks((p) => p.filter((x) => x !== name));
   }
@@ -91,7 +116,7 @@ export default function OnboardingPage() {
     alert("Onboarding saved locally (console). Hook finish() to server.");
   }
 
-  const slides = [
+  const slideUsername = (
     <div key="username" className="p-2">
       <div className="mb-4">
         <h2 className={clsx("text-3xl font-extrabold transition-opacity", titleVisible ? "opacity-100" : "opacity-0")}>
@@ -104,15 +129,17 @@ export default function OnboardingPage() {
         <label className="input-label">Username</label>
         <div className={clsx(
           "input-with-icon",
-          usernameTouched && !usernameError && username ? "input-valid" : "",
-          usernameTouched && usernameError ? "input-invalid" : ""
+          usernameError && username ? "input-valid" : "",
+          usernameError ? "input-invalid" : ""
         )}>
           <div className="input-icon">@</div>
           <input
             ref={usernameRef}
             value={username}
-            onChange={(e) => { setUsername(e.target.value); if (usernameTouched) setUsernameError(validateUsername(e.target.value)); }}
-            onBlur={() => { setUsernameTouched(true); setUsernameError(validateUsername()); }}
+            onChange={(e) => { 
+              setUsername(e.target.value);  
+              setUsernameError(checkUsername(e.target.value)); 
+            }}
             onKeyDown={(e) => { if (e.key === "Enter") next(); }}
             placeholder="yourhandle"
             className="input-field"
@@ -120,14 +147,16 @@ export default function OnboardingPage() {
           />
         </div>
 
-        {usernameTouched && usernameError ? (
+        {usernameError ? (
           <p className="text-xs text-red-400 mt-2">{usernameError}</p>
         ) : null}
 
         <p className="text-xs text-[var(--muted)] mt-2">This will be shown to other users — keep it short.</p>
       </div>
-    </div>,
+    </div>
+  );
 
+  const slideProfilePicture = (
     <div key="avatar" className="p-2">
       <div className="mb-4">
         <h3 className="text-2xl font-extrabold">Profile photo</h3>
@@ -148,8 +177,10 @@ export default function OnboardingPage() {
         <div style={{ height: 8 }} />
         <div className="text-xs text-[var(--muted)] text-center">JPG, PNG — up to 5MB. You can change this later.</div>
       </div>
-    </div>,
+    </div>
+  )
 
+  const slideGenre = (
     <div key="genres" className="p-2">
       <div className="mb-4">
         <h3 className="text-2xl font-extrabold">Pick up to 3 genres</h3>
@@ -180,8 +211,10 @@ export default function OnboardingPage() {
       </div>
 
       <div className="text-xs text-[var(--muted)] mt-4">Selected: <strong className="text-white">{selectedGenres.join(", ") || "None"}</strong></div>
-    </div>,
+    </div>
+  )
 
+  const slideArtist = (
     <div key="artists" className="p-2">
       <div className="mb-4">
         <h3 className="text-2xl font-extrabold">Pick up to 3 artists</h3>
@@ -249,8 +282,10 @@ export default function OnboardingPage() {
           )}
         </div>
       </div>
-    </div>,
+    </div>
+  )
 
+  const slideStreamingService = (
     <div key="connect" className="p-2">
       <div className="mb-4">
         <h3 className="text-2xl font-extrabold">Connect music services</h3>
@@ -261,7 +296,7 @@ export default function OnboardingPage() {
         { }
         <button
           className="w-full rounded-full py-4 flex items-center justify-center gap-3 bg-[var(--brand)] transition"
-          onClick={() => { /* TODO: open spotify OAuth */ alert("Spotify connect flow (stub)"); }}
+          onClick={() => { /** @todo: open spotify OAuth */ alert("Spotify connect flow (stub)"); }}
           aria-label="Connect with Spotify"
           style={{ boxShadow: "none" }}
         >
@@ -292,8 +327,10 @@ export default function OnboardingPage() {
         <div style={{ height: 32 }} />
         <div className="text-xs text-[var(--muted)] mt-12 text-center">You can connect later if you'd prefer.</div>
       </div>
-    </div>,
+    </div>
+  )
 
+  const slideConfirm = (
     <div key="done" className="p-2">
       <div className="mb-4">
         <h3 className="text-2xl font-extrabold">All set</h3>
@@ -326,7 +363,10 @@ export default function OnboardingPage() {
         <div className="mt-4 text-[var(--muted)] text-sm">Tap the arrow to finish!</div>
       </div>
     </div>
-  ];
+  )
+
+  const slides = [slideUsername, slideProfilePicture, slideGenre,
+    slideArtist, slideStreamingService, slideConfirm];
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-black text-white px-4">

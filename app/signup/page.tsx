@@ -13,21 +13,39 @@ export default function SignUpPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  const [passwordError, setPasswordError] = useState(false);
+  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
+  const [userTakenError, setUserTakenError] = useState(false);
   const [error, setError] = useState(false);
   const router = useRouter();
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-  
-    // validate formatting
+    setError(false);
+    setUserTakenError(false);
+
+    /**
+        The regular expression below cheks that a password:
+
+        Has minimum 8 characters in length. Adjust it by modifying {8,}
+        At least one uppercase English letter. You can remove this condition by removing (?=.*?[A-Z])
+        At least one lowercase English letter.  You can remove this condition by removing (?=.*?[a-z])
+        At least one digit. You can remove this condition by removing (?=.*?[0-9])
+        At least one special character,  You can remove this condition by removing (?=.*?[#?!@$%^&*-])
+     */
     const emailRegex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
     const passwordRegex  = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/
-    if (!(emailRegex.test(email)) || !(passwordRegex.test(password))){
-        return Response.json(
-            { error: 'Invalid email or password' },
-            { status: 400 }
-        )
-    }
+
+    const passwordValid = ((emailRegex.test(email)) && (passwordRegex.test(password)));
+    setPasswordError(!passwordValid);
+    if (!passwordValid) return;
+
+    // password confirmation
+    const passwordMatch = (password === confirmPassword)
+    setConfirmPasswordError(!passwordMatch);
+    if (!passwordMatch) return;
 
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
@@ -40,7 +58,7 @@ export default function SignUpPage() {
     const data = await res.json();
 
     if (!res.ok) {
-      setError(true);
+      res?.status === 422 ? setUserTakenError(true) : setError(true);
       return;
     }
 
@@ -63,21 +81,38 @@ export default function SignUpPage() {
         <AuthCard>
           {/* inner grey panel that holds the inputs */}
           <div className="form-panel">
-            <label hidden={!error} >Invalid email or password.</label> { /** @todo logan */}
+            <label hidden={!error} >Invalid email and password combination.</label> { /** @todo logan */}
+            <label hidden={!userTakenError} >Email is already in use.</label> { /** @todo logan */}
             <form className="space-y-0" method="post" onSubmit={handleSubmit}>
               <div className="form-row">
                 <label className="input-label">Email</label>
                 <Input className="w-full" name="email" placeholder="your@email.com" type="email" onChange={(e) => setEmail(e.target.value)}/>
               </div>
 
+              <label hidden={!passwordError}>Invalid password.</label> { /** @todo logan */}
               <div className="form-row">
                 <label className="input-label">Password</label>
                 <Input className="w-full" name="password" placeholder="••••••••" type="password" onChange={(e) => setPassword(e.target.value)}/>
               </div>
 
+              <label hidden={!confirmPasswordError}>Passwords must match.</label> { /** @todo logan */}
+              <div className="form-row">
+                <label className="input-label">Confirm Password</label>
+                <Input className="w-full" name="password" placeholder="••••••••" type="password" onChange={(e) => setConfirmPassword(e.target.value)}/>
+              </div>
+              <p className="text-sm text-[var(--muted)] mb-6">
+                A valid password has:
+                <br/>- Minimum 8 characters in length.
+                <br/>- At least one uppercase English letter.
+                <br/>- At least one lowercase English letter.
+                <br/>- At least one digit.
+                <br/>- At least one special character.
+              </p>
+
               <div className="form-row">
                 <Button type="submit" variant="primary" className="w-full">Sign Up</Button>
               </div>
+
             </form>
           </div>
         </AuthCard>

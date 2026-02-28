@@ -24,8 +24,7 @@ export async function POST(req: Request) {
         At least one digit. You can remove this condition by removing (?=.*?[0-9])
         At least one special character,  You can remove this condition by removing (?=.*?[#?!@$%^&*-])
      */
-
-        
+    
     const emailRegex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
     const passwordRegex  = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/
     if (!(emailRegex.test(email)) || !(passwordRegex.test(password))){
@@ -42,10 +41,17 @@ export async function POST(req: Request) {
     });
 
     if ( error || !data.session) {
-        return Response.json(
+        if (error?.status === 422) {
+            return Response.json (
+                { error: 'User already registered'},
+                { status: 422 }
+            );
+        } else {
+            return Response.json(
             { error: 'Invalid email or password' },
             { status: 400}
-        )
+            )
+        }
     };
 
     // store supabase tokens in cookies
