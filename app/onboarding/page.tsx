@@ -163,8 +163,8 @@ export default function OnboardingPage() {
         <p className="hero-sub mt-3">Add a photo so people recognise you.</p>
       </div>
 
-      <div className="mt-6 flex flex-col items-center gap-4">
-        <div className="w-36 h-36 rounded-full bg-[rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden border border-[rgba(255,255,255,0.04)]">
+      <div className="mt-6 flex flex-col items-center gap-2">
+        <div className="w-64 h-64 rounded-full bg-[rgba(255,255,255,0.02)] flex items-center justify-center overflow-hidden border border-[rgba(255,255,255,0.04)]">
           {avatarPreview ? <img src={avatarPreview} alt="avatar preview" className="w-full h-full object-cover" /> : <div className="text-[var(--muted)]">No photo</div>}
         </div>
         <div style={{ height: 32 }} />
