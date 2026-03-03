@@ -6,6 +6,7 @@ import { type NextRequest } from "next/server"
 import { updateSession } from "@/lib/supabase/proxy"
 
 export async function proxy(request: NextRequest) {
+  // refer to @/lib/supabase/proxy if you need to edit the redirect.
   return await updateSession(request)
 }
 

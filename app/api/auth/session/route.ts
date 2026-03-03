@@ -7,11 +7,10 @@ export async function GET() {
 
     if ( error ) {
         return Response.json(
-            { error: 'Bad Query' },
+            { error: 'Invalid Query' },
             { status: 500 }
         )
     } else {
-        console.log(data);
         return Response.json( 
             data
         )

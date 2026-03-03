@@ -30,25 +30,39 @@ export default function LoginPage() {
       setError(false);
 
       const registered = await isUserRegistered();
-      // registered ? router.push('/home') : router.push('/onboarding');
-      /** @todo set reroute when home page is made, dynamic depending on if user registered. */
-      //router.push('/onboarding');
-      //router.push('/home');
+
+      if (registered === null) {
+        setError(false);
+        await supabase.auth.signOut();
+      } else {
+        /** @todo set reroute when home page is made, dynamic depending on if user registered. */
+        registered ? router.push('/home') : router.push('/onboarding');
+      }
     }
   }
 
-  async function isUserRegistered(): Promise<boolean> {
+  async function isUserRegistered(): Promise<null | boolean> {
     const session = await fetch('/api/auth/session');
     const sessionData = await session.json();
 
-    if (!session.ok) {
-      return false;
+    if ( !session.ok ) {
+      return null;
     }
 
-    console.log(sessionData);
+    const res = await fetch(`/api/supabase/users?id=${sessionData.user.id}`)
+    const data = await res.json();
 
-    return true;
+    console.log(data);
+    if ( !res.ok ) {
+      /** @todo handle error. */
+      return null;
+    } else if ( data.length === 0 ) {
+      return false
+    } else {
+      return true;
+    }
   }
+  
   return (
     <main className="min-h-screen flex items-start justify-center px-6 auth-top">
       <div className="w-full auth-wrapper">
@@ -93,7 +107,6 @@ export default function LoginPage() {
         <p className="text-center text-sm text-[var(--muted)] mt-6">
           Don't have an account? <Link href="/signup" className="text-[var(--brand)]">Sign Up</Link>
         </p>
-        <Button onClick={() => isFirstTimeUser()} variant="primary" className="w-full mt-6">Log In</Button>
       </div>
     </main>
   );

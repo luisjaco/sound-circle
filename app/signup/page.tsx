@@ -8,9 +8,11 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation'; 
+import { createClient } from '@/lib/supabase/browser';
 
 export default function SignUpPage() {
 
+  const supabase = createClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,35 +39,28 @@ export default function SignUpPage() {
      */
     const emailRegex = /^[a-z0-9!#$%&'*+\/=?^_`{|}~.-]+@[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$/i;
     const passwordRegex  = /^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{8,}$/
-
     const passwordValid = ((emailRegex.test(email)) && (passwordRegex.test(password)));
+
     setPasswordError(!passwordValid);
     if (!passwordValid) return;
 
-    // password confirmation
     const passwordMatch = (password === confirmPassword)
     setConfirmPasswordError(!passwordMatch);
     if (!passwordMatch) return;
 
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-type' : 'application/json'
-      },
-      body : JSON.stringify( {email, password} )
-    });
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password
+    }) 
 
-    const data = await res.json();
-
-    if (!res.ok) {
-      res?.status === 422 ? setUserTakenError(true) : setError(true);
-      return;
+    if (error || !data.session) {
+      error?.status === 422 ? setUserTakenError(true) : setError(true);
+      return
     }
 
     // move on
     setError(false);
     router.push('/onboarding');
-
   }
 
   return (
