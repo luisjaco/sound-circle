@@ -1,4 +1,4 @@
-import supabase from '@/lib/supabase';
+import supabase from '@/lib/supabase/';
 import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
@@ -41,5 +41,6 @@ export async function POST(req: Request) {
         path: "/"
     })
 
+    console.log(data.session);
     return Response.json({ success: true });
 }

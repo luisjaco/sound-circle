@@ -2,25 +2,23 @@
 // this file will check that a user is logged in to the supabase to prevent users from going on
 // personal pages.
 
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { type NextRequest } from "next/server"
+import { updateSession } from "@/lib/supabase/proxy"
 
-export function proxy(req: NextRequest) {
-    const sb_token = req.cookies.get("sb_access_token")
+export async function proxy(request: NextRequest) {
+  return await updateSession(request)
+}
 
-    // given there is a user attempting to go on any of the following pages, the next logic will
-    // apply.
-    const protectedRoutes = ["/dashboard"]
-
-    if (
-        protectedRoutes.some(path =>
-            req.nextUrl.pathname.startsWith(path)
-        )
-    ) {
-        if (!sb_token) {
-            return NextResponse.redirect(
-                new URL("/login", req.url)
-            )
-        }
-    }
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     * Feel free to modify this pattern to include more paths.
+     */
+    "/dashboard",
+    "/onboarding",
+  ],
 }

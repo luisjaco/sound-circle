@@ -7,9 +7,10 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/browser';
 
 export default function LoginPage() {
-
+  const supabase = createClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
@@ -18,29 +19,36 @@ export default function LoginPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {
-        'Content-type' : 'application/json'
-      },
-      body : JSON.stringify( {email, password} )
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-    const data = await res.json();
-
-    if (!res.ok) {
+    if ( error ) {
       setError(true);
-      return;
-    }
+    } else {
+      setError(false);
 
-    // move on
-    setError(false);
-    router.push('/dashboard');
-    /**
-     * @todo update dashboard tag if we use a different name.
-     */
+      const registered = await isUserRegistered();
+      // registered ? router.push('/home') : router.push('/onboarding');
+      /** @todo set reroute when home page is made, dynamic depending on if user registered. */
+      //router.push('/onboarding');
+      //router.push('/home');
+    }
   }
 
+  async function isUserRegistered(): Promise<boolean> {
+    const session = await fetch('/api/auth/session');
+    const sessionData = await session.json();
+
+    if (!session.ok) {
+      return false;
+    }
+
+    console.log(sessionData);
+
+    return true;
+  }
   return (
     <main className="min-h-screen flex items-start justify-center px-6 auth-top">
       <div className="w-full auth-wrapper">
@@ -85,6 +93,7 @@ export default function LoginPage() {
         <p className="text-center text-sm text-[var(--muted)] mt-6">
           Don't have an account? <Link href="/signup" className="text-[var(--brand)]">Sign Up</Link>
         </p>
+        <Button onClick={() => isFirstTimeUser()} variant="primary" className="w-full mt-6">Log In</Button>
       </div>
     </main>
   );
