@@ -42,13 +42,19 @@ interface SpotifyTrack {
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
-        const tracks: SpotifyTrack[] = body.items;
+        const items = body.items || [];
+        const tracks: SpotifyTrack[] = items.map((item: any) => item.track || item);
+
+        // debugging
+        console.log('Tracks:', tracks);
+        console.log('First track:', tracks[0]);
 
         if (!Array.isArray(tracks) || tracks.length === 0) {
             return NextResponse.json(
                 { error: 'Request body must include a non-empty "tracks" array' }, 
                 { status: 400 });
-        }
+  
+          }
 
         // cap at 50 tracks per request to prevent abuse
         if (tracks.length > 50) {
@@ -68,9 +74,23 @@ export async function POST(request: NextRequest) {
             isrc: track.external_ids?.isrc
         }));
 
-        // send spotofy tracks into musicbrainz resolver
+        // send spotify tracks into musicbrainz resolver
         const results = await resolveTracks(trackInputs);
-        return NextResponse.json({ results });
+
+        // transform to format that is compatible with supabase uploads
+        const uploadFormat = results.map((result, index) => ({
+            source_id: result.sourceId,
+            platform: result.platform,
+            musicbrainz_id: result.musicBrainzId || null,
+            musicbrainz_artist_id: result.musicBrainzArtistId || null,
+            musicbrainz_release_id: result.musicBrainzReleaseId || null,
+            isrc: tracks[index].external_ids?.isrc || null,
+            name: result.name,
+            artist_name: result.artistName,
+            status: result.status
+        }));
+
+        return NextResponse.json({ results: uploadFormat});
     } catch (err: any) {
         console.error('Spotify catalog error:', err);
         return NextResponse.json(
