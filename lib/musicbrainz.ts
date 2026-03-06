@@ -71,6 +71,14 @@ export interface TrackResult {
     error?: string;
 }
 
+export interface MBArtist {
+    id: string; // MBID
+    name: string;
+    sortName?: string;
+    type?: string;
+    country?: string;
+}
+
 //ISRC Lookup
 
 export async function lookupByISRC(isrc: string): Promise<MBRecording | null> {
@@ -149,6 +157,41 @@ export async function searchRecording(
     } catch (err) {
         console.error(`Search error for "${trackName}" by "${artistName}":`, err);
         return null;
+    }
+}
+
+//Artist Search
+
+export async function searchArtist(query: string, limit: number = 5): Promise<MBArtist[]> {
+    try {
+        if (!query.trim()) return [];
+
+        const luceneQuery = escapeLucene(query.trim());
+        // Using quotes around the query usually gives better strict matches, but wildcard is better for live search.
+        // We'll use a combination: standard query string.
+        const url = `${MB_BASE}/artist?query=${encodeURIComponent(luceneQuery)}*&fmt=json&limit=${limit}`;
+
+        const res = await rateLimitedFetch(url);
+
+        if (!res.ok) {
+            throw new Error(`MusicBrainz artist search failed: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const artists: any[] = data.artists;
+
+        if (!artists || artists.length === 0) return [];
+
+        return artists.map(a => ({
+            id: a.id,
+            name: a.name,
+            sortName: a['sort-name'],
+            type: a.type,
+            country: a.country,
+        }));
+    } catch (err) {
+        console.error(`Artist search error for query "${query}":`, err);
+        return [];
     }
 }
 

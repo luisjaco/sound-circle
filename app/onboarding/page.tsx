@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import Logo from "@/components/Logo";
+import ArtistSearch from "@/components/ArtistSearch";
 
 const GENRES = [
   "Rock", "Pop", "Hip-Hop", "Electronic", "Indie", "Jazz", "Classical",
@@ -24,8 +25,7 @@ export default function OnboardingPage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
-  const [artistQuery, setArtistQuery] = useState("");
-  const [artistPicks, setArtistPicks] = useState<string[]>([]);
+  const [artistPicks, setArtistPicks] = useState<{ id: string; name: string }[]>([]);
 
   useEffect(() => {
     const t = setTimeout(() => setTitleVisible(true), 120);
@@ -100,15 +100,13 @@ export default function OnboardingPage() {
     });
   }
 
-  function addArtist(name: string) {
-    if (!name) return;
-    if (artistPicks.includes(name) || artistPicks.length >= 3) return;
-    setArtistPicks((p) => [...p, name]);
-    setArtistQuery("");
+  function addArtist(artist: { id: string; name: string }) {
+    if (!artist || !artist.id) return;
+    if (artistPicks.some(a => a.id === artist.id) || artistPicks.length >= 3) return;
+    setArtistPicks((p) => [...p, artist]);
   }
-
-  function removeArtist(name: string) {
-    setArtistPicks((p) => p.filter((x) => x !== name));
+  function removeArtist(id: string) {
+    setArtistPicks((p) => p.filter((x) => x.id !== id));
   }
 
   async function finish() {
@@ -136,9 +134,9 @@ export default function OnboardingPage() {
           <input
             ref={usernameRef}
             value={username}
-            onChange={(e) => { 
-              setUsername(e.target.value);  
-              setUsernameError(checkUsername(e.target.value)); 
+            onChange={(e) => {
+              setUsername(e.target.value);
+              setUsernameError(checkUsername(e.target.value));
             }}
             onKeyDown={(e) => { if (e.key === "Enter") next(); }}
             placeholder="yourhandle"
@@ -225,38 +223,9 @@ export default function OnboardingPage() {
         <label className="input-label">Search artists</label>
 
         { }
-        <div className="input-with-icon" style={{ padding: 0 }}>
-          <input
-            value={artistQuery}
-            onChange={(e) => setArtistQuery(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                const q = artistQuery.trim();
-                if (q) addArtist(q);
-              }
-            }}
-            placeholder="Type an artist and press Enter"
-            aria-label="Search artists"
-            className="input-field"
-            style={{ padding: "12px 14px", width: "100%" }}
-          />
-        </div>
+        <ArtistSearch onAddArtist={addArtist} />
         <div style={{ height: 8 }} />
         { }
-        <div className="mt-4 flex justify-center">
-          <button
-            type="button"
-            onClick={() => {
-              const q = artistQuery.trim();
-              if (q) addArtist(q);
-            }}
-            className="w-full max-w-xs btn-primary"
-            aria-label="Add artist"
-          >
-            Add
-          </button>
-        </div>
 
         <div className="artist-list mt-5">
           {artistPicks.length === 0 ? (
@@ -265,13 +234,13 @@ export default function OnboardingPage() {
             <div className="flex flex-wrap gap-2">
               {artistPicks.map((a) => (
                 <div
-                  key={a}
+                  key={a.id}
                   className="artist-token bg-[rgba(255,255,255,0.03)] border border-[rgba(255,255,255,0.04)] rounded-full px-3 py-1 flex items-center gap-2 text-white"
                 >
-                  <span className="text-sm">{a}</span>
+                  <span className="text-sm">{a.name}</span>
                   <button
-                    onClick={() => removeArtist(a)}
-                    aria-label={`Remove ${a}`}
+                    onClick={() => removeArtist(a.id)}
+                    aria-label={`Remove ${a.name}`}
                     className="text-xs text-[var(--muted)] hover:text-white"
                   >
                     ×
@@ -355,7 +324,7 @@ export default function OnboardingPage() {
           <div style={{ height: 12 }} />
           <div className="text-xs text-[var(--muted)]">Artists:</div>
           <div style={{ height: 4 }} />
-          <div className="mt-1"><span className="text-white">{artistPicks.join(", ") || "—"}</span></div>
+          <div className="mt-1"><span className="text-white">{artistPicks.map(a => a.name).join(", ") || "—"}</span></div>
         </div>
 
         { }
