@@ -8,9 +8,6 @@ export async function GET(req: Request) {
     const username = searchParams.get('username');
     const id = searchParams.get('id');
 
-    let query = supabase.from('users').select('*');
-
-    // username path
     if (username) {
         const { data, error } = await supabase
             .from('users')
@@ -28,7 +25,6 @@ export async function GET(req: Request) {
         }
     }
 
-    // user id path
     if (id) {
         const { data, error } = await supabase
             .from('users')
@@ -46,7 +42,6 @@ export async function GET(req: Request) {
         }
     }
 
-    // edge case
     return Response.json(
         { error: 'Bad Request' },
         { status: 400}
