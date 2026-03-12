@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, ArrowRight, User, Disc3 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, User, Disc3, Loader2 } from 'lucide-react';
 import ArtistSearch from "@/components/ArtistSearch";
 
 interface OnboardingPageProps {
@@ -25,6 +25,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   // Step 3: Photo
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   // Step 4: Genres
   const genres = [
@@ -126,6 +127,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
+      setIsCompleting(true);
       router.push('/profile');
     }
   };
@@ -457,9 +459,17 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
 
           <button
             onClick={handleNext}
-            className="w-14 h-14 rounded-full bg-[#1DB954] hover:bg-[#1ed760] text-black flex items-center justify-center transition-colors"
+            disabled={isCompleting}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${isCompleting
+                ? 'bg-transparent border-2 border-[#1DB954]'
+                : 'bg-[#1DB954] hover:bg-[#1ed760] text-black'
+              }`}
           >
-            <ArrowRight className="w-6 h-6" />
+            {isCompleting ? (
+              <Loader2 className="w-6 h-6 animate-spin text-[#1DB954]" />
+            ) : (
+              <ArrowRight className="w-6 h-6" />
+            )}
           </button>
         </div>
       </div>
