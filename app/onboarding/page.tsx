@@ -392,7 +392,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
 
               <div className="space-y-4 mb-6">
                 <button
-                  onClick={() => alert('TBD')}
+                  onClick={() => router.push('/library')}
                   className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black"
                 >
                   <img
@@ -402,7 +402,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
                   />
                 </button>
                 <button
-                  onClick={() => router.push('/library')}
+                  onClick={() => alert('TBD')}
                   className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors"
                 >
                   <img
