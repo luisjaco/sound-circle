@@ -40,7 +40,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const [artistError, setArtistError] = useState('');
 
   // Step 6: Services
-  const [connectedServices, setConnectedServices] = useState<string[]>([]);
 
   // ----------------------------------------------------
   // Step 1 Logic (Username checking from main)
@@ -54,7 +53,10 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   }
 
   async function validateUsernameCheck() {
-    if (!username) return false;
+    if (!username) {
+      setUsernameError('Please enter a username.');
+      return false;
+    }
     const formatError = checkUsername(username);
     if (formatError) {
       setUsernameError(formatError);
@@ -124,11 +126,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     } else {
-      if (onNavigate) {
-        onNavigate('home');
-      } else {
-        router.push('/');
-      }
+      router.push('/profile');
     }
   };
 
@@ -176,14 +174,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const handleSkipPhoto = () => {
     setProfilePhoto(null);
     handleNext();
-  };
-
-  const toggleService = (service: string) => {
-    if (connectedServices.includes(service)) {
-      setConnectedServices(connectedServices.filter(s => s !== service));
-    } else {
-      setConnectedServices([...connectedServices, service]);
-    }
   };
 
   const renderStepContent = () => {
@@ -402,11 +392,8 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
 
               <div className="space-y-4 mb-6">
                 <button
-                  onClick={() => toggleService('spotify')}
-                  className={`w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors ${connectedServices.includes('spotify')
-                    ? 'bg-[#1DB954] text-black'
-                    : 'bg-[#1DB954] hover:bg-[#1ed760] text-black'
-                    }`}
+                  onClick={() => alert('TBD')}
+                  className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black"
                 >
                   <img
                     src="/brand/spotify.svg"
@@ -415,7 +402,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
                   />
                 </button>
                 <button
-                  onClick={() => toggleService('applemusic')}
+                  onClick={() => router.push('/library')}
                   className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors"
                 >
                   <img
