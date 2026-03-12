@@ -13,21 +13,18 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
 
-  // Step 1: Username
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
 
-  // Step 2: About (Bio/Name)
   const [fullName, setFullName] = useState('');
   const [fullNameError, setFullNameError] = useState('');
   const [bio, setBio] = useState('');
 
-  // Step 3: Photo
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isCompleting, setIsCompleting] = useState(false);
 
-  // Step 4: Genres
+
   const genres = [
     'Rock', 'Pop', 'Hip-Hop', 'Electronic', 'Indie', 'Jazz',
     'Classical', 'Metal', 'R&B', 'Country', 'Reggae', 'Folk',
@@ -36,15 +33,9 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [genreError, setGenreError] = useState('');
 
-  // Step 5: Artists
   const [artistPicks, setArtistPicks] = useState<{ id: string; name: string }[]>([]);
   const [artistError, setArtistError] = useState('');
 
-  // Step 6: Services
-
-  // ----------------------------------------------------
-  // Step 1 Logic (Username checking from main)
-  // ----------------------------------------------------
   function checkUsername(user = username) {
     if (!user) return "Please enter a username.";
     if (user.length < 2) return "Username is too short.";
@@ -83,9 +74,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     }
   }
 
-  // ----------------------------------------------------
-  // Step 2 Logic (Full name validation from frontend-weekly)
-  // ----------------------------------------------------
   const validateFullName = (value: string): boolean => {
     setFullNameError('');
     if (!value || value.trim() === '') {
@@ -95,9 +83,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     return true;
   };
 
-  // ----------------------------------------------------
-  // Navigation
-  // ----------------------------------------------------
   const handleNext = async () => {
     if (currentStep === 1) {
       const isValid = await validateUsernameCheck();
@@ -138,9 +123,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     }
   };
 
-  // ----------------------------------------------------
-  // More Handlers
-  // ----------------------------------------------------
   const toggleGenre = (genre: string) => {
     if (selectedGenres.includes(genre)) {
       setSelectedGenres(selectedGenres.filter(g => g !== genre));
@@ -461,8 +443,8 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
             onClick={handleNext}
             disabled={isCompleting}
             className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${isCompleting
-                ? 'bg-transparent border-2 border-[#1DB954]'
-                : 'bg-[#1DB954] hover:bg-[#1ed760] text-black'
+              ? 'bg-transparent border-2 border-[#1DB954]'
+              : 'bg-[#1DB954] hover:bg-[#1ed760] text-black'
               }`}
           >
             {isCompleting ? (
