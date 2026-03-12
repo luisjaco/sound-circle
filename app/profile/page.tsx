@@ -8,7 +8,7 @@ import { Button } from "../../components/ui/button";
 import { ImageWithFallback } from "../../components/img/ImageWithFallback";
 import { useMusicKit } from "@/components/providers/MusicKitProvider";
 
-// ---------- Types ----------
+// Types
 
 interface FavoriteArtist {
   id: string;
@@ -45,14 +45,14 @@ export default function ProfilePage() {
   const router = useRouter();
   const { musicKit, isAuthorized } = useMusicKit();
 
-  // ---------- Favorite Artists State ----------
+  // Favorite Artists State
   const [favoriteArtistsFromApple, setFavoriteArtistsFromApple] = useState<FavoriteArtist[]>([]);
   const [favoriteAlbumsFromApple, setFavoriteAlbumsFromApple] = useState<FavoriteAlbum[]>([]);
   const [loadingFavorites, setLoadingFavorites] = useState(true);
   const [favoritesError, setFavoritesError] = useState<string | null>(null);
   const [favoritesSource, setFavoritesSource] = useState<string | null>(null);
 
-  // ---------- Fetch Favorite Artists ----------
+  // Fetch Favorite Artists
   // Fetch favorite artists on page load — blocks render until complete
   useEffect(() => {
     let cancelled = false;
@@ -108,7 +108,7 @@ export default function ProfilePage() {
     return () => { cancelled = true; };
   }, [musicKit, isAuthorized]);
 
-  // ---------- Artwork Helper ----------
+  // Artwork Helper
   const getArtworkUrl = (url?: string, size = 120) => {
     if (!url) return null;
     return url
@@ -116,7 +116,7 @@ export default function ProfilePage() {
       .replace("{h}", size.toString());
   };
 
-  // ---------- Static Data (unchanged) ----------
+  // Static Data (unchanged)
   const userReviews = [
     {
       id: 1,

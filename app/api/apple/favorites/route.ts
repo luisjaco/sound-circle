@@ -68,7 +68,7 @@ function parseArtwork(attrs: any): ArtworkObj | null {
     };
 }
 
-// ─── Deduplication ───
+// Deduplication 
 
 function deduplicateByName<T extends { name: string }>(items: T[]): T[] {
     const seen = new Set<string>();
@@ -80,7 +80,7 @@ function deduplicateByName<T extends { name: string }>(items: T[]): T[] {
     });
 }
 
-// ─── Artist helpers ───
+// Artist helpers
 
 function parseArtist(artist: any): FavoriteArtist {
     const attrs = artist.attributes || {};
@@ -98,7 +98,7 @@ function parseArtist(artist: any): FavoriteArtist {
     };
 }
 
-// ─── Album helpers ───
+// Album helpers 
 
 function parseAlbum(album: any): FavoriteAlbum {
     const attrs = album.attributes || {};
@@ -119,7 +119,7 @@ function parseAlbum(album: any): FavoriteAlbum {
     };
 }
 
-// ─── Main handler ───
+//  Main handler 
 
 export async function POST(req: NextRequest) {
     try {
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// ─── Fallback: library endpoints ───
+//  Fallback: library endpoints 
 
 async function fetchLibraryFallback(
     headers: Record<string, string>,
