@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
-    const accessToken = 'BQAAsCKktWJqO32Ur2plTs6-US42dfZz8WAXyT86gcyuDO1bIpkaYcLDIkOs1BPeZxeegJmZztNhIBe7x5PlmIIjpajsj3tiMd21vq74F3-fwVLX9Oa3eVK8apX5LwrEFDRyyGWqjk0BYBF0HZsLkoalvTyvZo_jQiMclI7K_muKKn6tHScuaGauDPbOpbsV-kWtqJqngMkKNuzjtQernO9Y6qG0ctWSCAZIQEkZ';
+    const accessToken = 'BQD3Rza5f99dToX9tu8BzZaEO0jsz78L3FHXgK_tNJQ1C_m5yxykuOQYUNiruRj1sxQxosAbeFNZj4tFtxaabk6_HeMwpZmcmv2uc2non-2ytN6nwttuRMPMM_GCt04uYLgPIAzdIAxHp-ZDWs9DwG3LLX_69Bt8ciOq7eWJjYx1rNy6G-K4k2VMcLr3hqSBX0aX_GoueQ-EDZjtVIR6NWaZ8ycFcQgHBM5DU2jx';
 
     // fetch the user's recently played tracks
     const response = await fetch('https://api.spotify.com/v1/me/player/recently-played?limit=50', {
@@ -12,7 +12,7 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
 
-    // format the raw json response
+    /* format the raw json response
     const formattedTracks = data.items.map((item: any, index: number) => ({
         number: index + 1,
         trackName: item.track.name,
@@ -21,9 +21,9 @@ export async function GET(request: NextRequest) {
         playedAt: new Date(item.played_at).toLocaleString(),
         isrc: item.track.external_ids?.isrc || null
     }));
+    */
 
-
-    return NextResponse.json(formattedTracks, {
+    return NextResponse.json(data, {
         status: 200,
         headers: {
             'Content-Type': 'application/json; charset=utf-8'
