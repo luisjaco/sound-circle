@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, User, Disc3, Loader2 } from 'lucide-react';
 import ArtistSearch from "@/components/ArtistSearch";
+import { useMusicKit } from "@/components/providers/MusicKitProvider";
 
 interface OnboardingPageProps {
   onNavigate?: (page: string) => void;
@@ -10,8 +11,12 @@ interface OnboardingPageProps {
 
 export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const router = useRouter();
+  const { musicKit, isAuthorized } = useMusicKit();
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 6;
+
+  const [appleConnectedMessage, setAppleConnectedMessage] = useState('');
+  const [isAuthorizingApple, setIsAuthorizingApple] = useState(false);
 
   const [username, setUsername] = useState('');
   const [usernameError, setUsernameError] = useState('');
@@ -158,6 +163,23 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const handleSkipPhoto = () => {
     setProfilePhoto(null);
     handleNext();
+  };
+
+  const handleAppleMusicConnect = async () => {
+    if (!musicKit) return;
+    setIsAuthorizingApple(true);
+    setAppleConnectedMessage('');
+    try {
+      if (!isAuthorized) {
+        await musicKit.authorize();
+      }
+      setAppleConnectedMessage('Account connected successfully.');
+    } catch (error) {
+      console.error("Apple Music authorization failed", error);
+      setAppleConnectedMessage('Failed to connect to Apple Music.');
+    } finally {
+      setIsAuthorizingApple(false);
+    }
   };
 
   const renderStepContent = () => {
@@ -386,16 +408,27 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
                   />
                 </button>
                 <button
-                  onClick={() => alert('TBD')}
-                  className="w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors"
+                  onClick={handleAppleMusicConnect}
+                  disabled={isAuthorizingApple || isAuthorized}
+                  className={`w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors ${isAuthorized ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <img
-                    src="/brand/apple-music.svg"
-                    alt="Apple Music"
-                    className="w-6 h-6 shrink-0 scale-[6.6] object-contain"
-                  />
+                  {isAuthorizingApple ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-black" />
+                  ) : (
+                    <img
+                      src="/brand/apple-music.svg"
+                      alt="Apple Music"
+                      className="w-6 h-6 shrink-0 scale-[6.6] object-contain"
+                    />
+                  )}
                 </button>
               </div>
+
+              {appleConnectedMessage && (
+                <p className={`text-sm text-center mb-6 font-medium ${appleConnectedMessage.includes('Failed') ? 'text-red-500' : 'text-green-500'}`}>
+                  {appleConnectedMessage}
+                </p>
+              )}
 
               <p className="text-gray-500 text-sm text-center">
                 You can connect later if you&apos;d prefer.
