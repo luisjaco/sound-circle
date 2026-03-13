@@ -43,6 +43,15 @@ export default function OnboardingPage() {
     return () => URL.revokeObjectURL(url);
   }, [avatarFile]);
 
+  // used to redirect user after spotify auth
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const step = params.get('step');
+    if(step) {
+      setIndex(parseInt(step));
+    }
+  }, []);
+
   async function validateUsername() {
 
     // check if username exists
@@ -296,7 +305,7 @@ export default function OnboardingPage() {
         { }
         <button
           className="w-full rounded-full py-4 flex items-center justify-center gap-3 bg-[var(--brand)] transition"
-          onClick={() => { /** @todo: open spotify OAuth */ alert("Spotify connect flow (stub)"); }}
+          onClick={() => router.push('/api/spotify/auth')}
           aria-label="Connect with Spotify"
           style={{ boxShadow: "none" }}
         >
