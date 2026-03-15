@@ -5,11 +5,25 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url);
 
-    const genre = searchParams.get('genre');
+    let genre = searchParams.get('genre');
 
     if ( genre ) {
-        /** @todo some custom genre logic... (optimal) */
-        return;
+        genre = genre.trim();
+        const { data, error } = await supabase
+            .from('genres')
+            .select('*')
+            .ilike('genre', `%${genre}%`);
+        
+        if ( error ) {
+            return Response.json(
+                { error: "Invalid Query" },
+                { status: 500 }
+            )
+        } else {
+            return Response.json(
+                data
+            )
+        }
     }
 
     // all genre (not optimal)
