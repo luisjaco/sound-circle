@@ -8,9 +8,15 @@ import Button from "@/components/Button";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
+import { useEffect } from 'react';
 
 export default function LoginPage() {
-  const supabase = createClient();
+  const [supabase, setSupabase] = useState<any>(null);
+
+  useEffect(() => {
+    setSupabase(createClient());
+  }, []);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
@@ -18,13 +24,14 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!supabase) return;
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password
     })
 
-    if ( error ) {
+    if (error) {
       setError(true);
     } else {
       setError(false);
@@ -45,7 +52,7 @@ export default function LoginPage() {
     const session = await fetch('/api/auth/session');
     const sessionData = await session.json();
 
-    if ( !session.ok ) {
+    if (!session.ok) {
       return null;
     }
 
@@ -53,16 +60,16 @@ export default function LoginPage() {
     const data = await res.json();
 
     console.log(data);
-    if ( !res.ok ) {
+    if (!res.ok) {
       /** @todo handle error. */
       return null;
-    } else if ( data.length === 0 ) {
+    } else if (data.length === 0) {
       return false
     } else {
       return true;
     }
   }
-  
+
   return (
     <main className="min-h-screen flex items-start justify-center px-6 auth-top">
       <div className="w-full auth-wrapper">
@@ -93,7 +100,7 @@ export default function LoginPage() {
                   href="/forgot-password"
                   className="text-sm text-[var(--brand)] forgot-link"
                 >
-                Forgot password?
+                  Forgot password?
                 </Link>
               </div>
 
