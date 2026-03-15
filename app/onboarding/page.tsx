@@ -157,6 +157,9 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   };
 
   const handleSubmit = async () => {
+    // while attempting
+    setSubmissionError(false);
+    
     const session = await fetch('/api/auth/session');
     const sessionData = await session.json();
 
@@ -201,7 +204,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     }
 
     // user data
-    const userQuery = supabase
+    const { data, error } = await supabase
       .from('users')
       .insert({
         'id' : uuid,
@@ -213,6 +216,13 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
         'profile_picture_url' : imagePath,
       })
     
+    if ( error ) {
+      console.log('users error', error);
+      setSubmissionError(true);
+      return false;
+    }
+
+    // user_favorite_genres insert
     const favoriteGenres = genrePicks.map((x) => ({user_id: uuid, genre_id: x.id}));
     const favoriteGenreQuery = supabase
       .from('user_favorite_genres')
@@ -224,12 +234,11 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     //   .from('user_favorite_artists')
     //   .insert(favoriteArtists);
 
-    const queries = [userQuery, favoriteGenreQuery] //, favoriteArtistQuery];
+    const queries = [favoriteGenreQuery] //, favoriteArtistQuery];
 
-    const [users, genres] = await Promise.all(queries);
+    const [genres] = await Promise.all(queries);
 
-    if ( users.error || genres.error ) { //|| artists.error ) {
-      if (users.error) console.log("users error", users.error);
+    if ( genres.error ) { //|| artists.error ) {
       if (genres.error) console.log("user_favorite_genres error", genres.error);
       // if (artists.error) console.log("user_favorite_artists error", artists.error);
       setSubmissionError(true);
