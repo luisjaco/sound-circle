@@ -1,11 +1,14 @@
 "use client";
-import React, { useState, useRef } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, User, Disc3, Loader2 } from 'lucide-react';
-import ArtistSearch from "@/components/ArtistSearch";
-import GenreSearch from '@/components/GenreSearch';
+import ArtistSearch from "./components/ArtistSearch";
+import GenreSearch from './components/GenreSearch';
 import { createClient } from '@/lib/supabase/browser';
 import { useMusicKit } from "@/components/providers/MusicKitProvider";
+import { validateUsernameSB, createUser } from './queries';
+import Username from './components/Username';
 
 interface OnboardingPageProps {
   onNavigate?: (page: string) => void;
@@ -18,12 +21,16 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 7;
 
+  // important for parent-child classes to communicate, when this is changed (arrow pressed), 
+  // components will react. don't use boolean because if we keep a boolean at true, useEffect() won't
+  // run on the child.
+  const [arrowPress, setArrowPress] = useState(0);
+  const [componentState, setComponentState] = useState<'inactive' | 'working' | 'failure' | 'success'>('inactive');
+
   const [appleConnectedMessage, setAppleConnectedMessage] = useState('');
   const [isAuthorizingApple, setIsAuthorizingApple] = useState(false);
 
   const [username, setUsername] = useState('');
-  const [usernameError, setUsernameError] = useState('');
-
   const [fullName, setFullName] = useState('');
   const [fullNameError, setFullNameError] = useState('');
   const [bio, setBio] = useState('');
@@ -43,47 +50,40 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const supabase = createClient();
   const [submissionError, setSubmissionError] = useState(false);
 
-  const validateUsername = (u?: string): boolean => {
-    const user = u || username;
-    // local check
-    if (!user) {
-      setUsernameError('Please enter a username.');
-      return false;
-    } else if (user.length < 2) {
-      setUsernameError("Username is too short.");
-      return false;
-    } else if (!/^[\w.-]+$/.test(user)) {
-      setUsernameError("Only letters, numbers, and special characters (., _, or -) allowed.")
-      return false;
-    } else if (user.length > 20) {
-      setUsernameError("Username must be 20 characters or less");
-      return false;
-    } else {
-      setUsernameError('');
-      return true;
-    }
-  }
+  // const validateUsernameLocal = (u?: string): boolean => {
+  //   const user = u || username;
+  //   // local check
+  //   if (!user) {
+  //     setUsernameError('Please enter a username.');
+  //     return false;
+  //   } else if (user.length < 2) {
+  //     setUsernameError("Username is too short.");
+  //     return false;
+  //   } else if (!/^[\w.-]+$/.test(user)) {
+  //     setUsernameError("Only letters, numbers, and special characters (., _, or -) allowed.")
+  //     return false;
+  //   } else if (user.length > 20) {
+  //     setUsernameError("Username must be 20 characters or less");
+  //     return false;
+  //   } else {
+  //     setUsernameError('');
+  //     return true;
+  //   }
+  // }
 
-  const validateOriginalUsername = async (): Promise<boolean> => {
-    // supabase check for username originality (does username exist in table?)
-    try {
-      const res = await fetch(`/api/supabase/users?username=${encodeURIComponent(username)}`);
-      if (!res.ok) {
-        setUsernameError('There was an error validating this username.');
-        return false;
-      }
-      const data = await res.json();
-      if (data.length > 0) {
-        setUsernameError('This username already exists.');
-        return false;
-      }
-      setUsernameError('');
-      return true;
-    } catch {
-      setUsernameError('There was an error validating this username.');
-      return false;
+  // stall button press and functionality whenever working state changes.
+  useEffect(() => {
+    if ((componentState === 'inactive') || (componentState === 'working')) return;
+
+    if (componentState === 'success') {
+      setArrowPress(0);
+      setCurrentStep((x) => x + 1);
     }
-  }
+
+    // reset, even if failure
+    setComponentState('inactive');
+  }, [componentState])
+
 
   const validateFullName = (): boolean => {
     if (!fullName || fullName.trim() === '') {
@@ -120,8 +120,13 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const handleNext = async () => {
     switch (currentStep) {
       case 1: {
-        if (!(validateUsername()) || !(await validateOriginalUsername())) return;
-        break;
+        // setArrowPress((x) => x + 1);
+        // console.log(ready);
+        // if (!ready) return;
+        // else {
+        //   setReady(false);
+        //   break;
+        // }
       }
       case 2: {
         if (!validateFullName()) return;
@@ -142,11 +147,26 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
         break;
       }
       case 7: {
-        if (!(await handleSubmit())) {
-          return;
+        const userCreated = await createUser(
+          supabase,
+          profilePictureUrl as string,
+          profilePictureFile as File,
+          fullName,
+          bio,
+          username,
+          city,
+          state,
+          genrePicks,
+          artistPicks
+        );
+
+        if (!userCreated) {
+          setSubmissionError(true);
         } else {
-          router.push('/test-review');
+          setSubmissionError(false);
+          router.push(`/${username}`);
         }
+        return;
       }
       default: {
         return;
@@ -155,98 +175,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
 
     setCurrentStep(currentStep + 1);
   };
-
-  const handleSubmit = async () => {
-    // while attempting
-    setSubmissionError(false);
-    
-    const session = await fetch('/api/auth/session');
-    const sessionData = await session.json();
-
-    if ( !session.ok ) {
-      setSubmissionError(true);
-      return false;
-    }
-
-    const uuid = sessionData.user.id;
-
-    // profile image
-    let imagePath = '';
-    if ( profilePictureUrl && profilePictureFile) {
-      const [originalName, fileExt] = profilePictureUrl.split('.')
-      const fileName = `${Date.now()}_${Math.random()}.${fileExt}`;
-      const filePath = `${uuid}/${fileName}`;
-
-      const { error } = await supabase
-        .storage
-        .from('profile_images')
-        .upload(filePath, profilePictureFile);
-
-      if ( error ) {
-        setSubmissionError(true);
-        return false;
-      } else {
-        const { publicUrl } = await supabase
-          .storage
-          .from('profile_images')
-          .getPublicUrl(filePath)
-          .data;
-
-        if ( publicUrl ) {
-          imagePath = publicUrl;
-          setSubmissionError(false);
-        }
-        else {
-          setSubmissionError(true);
-          return false;
-        }
-      }
-    }
-
-    // user data
-    const { data, error } = await supabase
-      .from('users')
-      .insert({
-        'id' : uuid,
-        'name' : fullName,
-        'bio' : bio,
-        'username' : username,
-        'city' : city,
-        'state' : state,
-        'profile_picture_url' : imagePath,
-      })
-    
-    if ( error ) {
-      console.log('users error', error);
-      setSubmissionError(true);
-      return false;
-    }
-
-    // user_favorite_genres insert
-    const favoriteGenres = genrePicks.map((x) => ({user_id: uuid, genre_id: x.id}));
-    const favoriteGenreQuery = supabase
-      .from('user_favorite_genres')
-      .insert(favoriteGenres);
-      
-    /** @TODO currently, skip adding artists. */
-    // const favoriteArtists = artistPicks.map((x) => ({user_id: uuid, artist_id: x.id}));
-    // const favoriteArtistQuery = supabase
-    //   .from('user_favorite_artists')
-    //   .insert(favoriteArtists);
-
-    const queries = [favoriteGenreQuery] //, favoriteArtistQuery];
-
-    const [genres] = await Promise.all(queries);
-
-    if ( genres.error ) { //|| artists.error ) {
-      if (genres.error) console.log("user_favorite_genres error", genres.error);
-      // if (artists.error) console.log("user_favorite_artists error", artists.error);
-      setSubmissionError(true);
-      return false;
-    } else {
-      return true;
-    }
-  }
 
   const handleBack = () => {
     if (currentStep > 1) {
@@ -313,38 +241,38 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     }
   };
 
-  const usernamePanel = (
-    <div className="flex flex-col h-full">
-      <div className="flex-1">
-        <h2 className="text-white mb-2">
-          Welcome to <span className="font-bold">Sound<span className="text-[#1DB954]">Circle</span></span>
-        </h2>
-        <p className="text-gray-400 text-lg mb-8">What should we call you?</p>
+  // const usernamePanel = (
+  //   <div className="flex flex-col h-full">
+  //     <div className="flex-1">
+  //       <h2 className="text-white mb-2">
+  //         Welcome to <span className="font-bold">Sound<span className="text-[#1DB954]">Circle</span></span>
+  //       </h2>
+  //       <p className="text-gray-400 text-lg mb-8">What should we call you?</p>
 
-        <div className="mb-2">
-          <label className="text-white font-medium block mb-3">Username</label>
-          <div className="relative">
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">@</span>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => {
-                setUsername(e.target.value);
-                validateUsername(e.target.value);
-              }}
-              onBlur={() => validateUsername()}
-              placeholder="yourhandle"
-              className="w-full bg-[#282828] text-white pl-10 pr-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors"
-            />
-          </div>
-          {usernameError && (
-            <p className="text-red-500 text-sm mt-2">{usernameError}</p>
-          )}
-        </div>
-        <p className="text-gray-500 text-sm">This will be shown to other users — keep it short.</p>
-      </div>
-    </div>
-  )
+  //       <div className="mb-2">
+  //         <label className="text-white font-medium block mb-3">Username</label>
+  //         <div className="relative">
+  //           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-lg">@</span>
+  //           <input
+  //             type="text"
+  //             value={username}
+  //             onChange={(e) => {
+  //               setUsername(e.target.value);
+  //               validateUsernameLocal(e.target.value);
+  //             }}
+  //             onBlur={() => validateUsernameLocal()}
+  //             placeholder="yourhandle"
+  //             className="w-full bg-[#282828] text-white pl-10 pr-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors"
+  //           />
+  //         </div>
+  //         {usernameError && (
+  //           <p className="text-red-500 text-sm mt-2">{usernameError}</p>
+  //         )}
+  //       </div>
+  //       <p className="text-gray-500 text-sm">This will be shown to other users — keep it short.</p>
+  //     </div>
+  //   </div>
+  // )
 
   const bioPanel = (
     <div className="flex flex-col h-full">
@@ -560,39 +488,39 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
           Optionally connect Spotify or Apple Music to import your listening history.
         </p>
 
-              <div className="space-y-4 mb-6">
-                <button
-                  onClick={() => router.push('/library')}
-                  className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black"
-                >
-                  <img
-                    src="/brand/spotify.svg"
-                    alt="Spotify"
-                    className="w-6 h-6 shrink-0 scale-[10.6] object-contain"
-                  />
-                </button>
-                <button
-                  onClick={handleAppleMusicConnect}
-                  disabled={isAuthorizingApple || isAuthorized}
-                  className={`w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors ${isAuthorized ? 'opacity-50 cursor-not-allowed' : ''}`}
-                >
-                  {isAuthorizingApple ? (
-                    <Loader2 className="w-6 h-6 animate-spin text-black" />
-                  ) : (
-                    <img
-                      src="/brand/apple-music.svg"
-                      alt="Apple Music"
-                      className="w-6 h-6 shrink-0 scale-[6.6] object-contain"
-                    />
-                  )}
-                </button>
-              </div>
+        <div className="space-y-4 mb-6">
+          <button
+            onClick={() => router.push('/library')}
+            className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black"
+          >
+            <img
+              src="/brand/spotify.svg"
+              alt="Spotify"
+              className="w-6 h-6 shrink-0 scale-[10.6] object-contain"
+            />
+          </button>
+          <button
+            onClick={handleAppleMusicConnect}
+            disabled={isAuthorizingApple || isAuthorized}
+            className={`w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors ${isAuthorized ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isAuthorizingApple ? (
+              <Loader2 className="w-6 h-6 animate-spin text-black" />
+            ) : (
+              <img
+                src="/brand/apple-music.svg"
+                alt="Apple Music"
+                className="w-6 h-6 shrink-0 scale-[6.6] object-contain"
+              />
+            )}
+          </button>
+        </div>
 
-              {appleConnectedMessage && (
-                <p className={`text-sm text-center mb-6 font-medium ${appleConnectedMessage.includes('Failed') ? 'text-red-500' : 'text-green-500'}`}>
-                  {appleConnectedMessage}
-                </p>
-              )}
+        {appleConnectedMessage && (
+          <p className={`text-sm text-center mb-6 font-medium ${appleConnectedMessage.includes('Failed') ? 'text-red-500' : 'text-green-500'}`}>
+            {appleConnectedMessage}
+          </p>
+        )}
 
         <p className="text-gray-500 text-sm text-center">
           You can connect later if you&apos;d prefer.
@@ -608,7 +536,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
         <p className="text-gray-400 text-lg mb-3">Final check before becoming a SoundCircle user!</p>
 
         {submissionError && (
-            <p className="text-red-500 text-sm mt-2">There was an error creating your profile.</p>
+          <p className="text-red-500 text-sm mt-2">There was an error creating your profile.</p>
         )}
 
         <div className="flex flex-col items-center gap-6 mb-3">
@@ -715,7 +643,12 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return usernamePanel
+        return <Username
+          username={username}
+          setUsername={setUsername}
+          arrowPress={arrowPress}
+          setComponentState={setComponentState}
+        />
       case 2:
         return bioPanel
       case 3:
@@ -754,18 +687,28 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
         <div className="flex justify-between items-center">
           <button
             onClick={handleBack}
-            disabled={currentStep === 1}
-            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${currentStep === 1
-              ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
-              : 'bg-[#282828] text-white hover:bg-[#383838]'
-              }`}
+            disabled={(currentStep === 1) || (componentState === 'working')}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors 
+              ${ ((currentStep === 1) || (componentState === 'working')) ?
+                'bg-gray-800 text-gray-600 cursor-not-allowed'
+                :
+                'bg-[#282828] text-white hover:bg-[#383838]'
+              }`
+            }
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
 
           <button
-            onClick={handleNext}
-            className={'w-14 h-14 rounded-full flex items-center justify-center transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black'}
+            disabled={componentState === 'working'}
+            onClick={() => setArrowPress((x) => x + 1)}
+            className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors 
+              ${componentState === 'working' ?
+                'bg-gray-800 text-gray-600 cursor-not-allowed'
+                :
+                'bg-[#1DB954] hover:bg-[#1ed760] text-black`'
+              }`
+            }
           >
             <ArrowRight className="w-6 h-6" />
           </button>
