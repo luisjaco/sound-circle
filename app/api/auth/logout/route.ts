@@ -1,4 +1,4 @@
-import supabase from '@/lib/supabase';
+import { createClient } from "@/lib/supabase/server";
 import { cookies } from 'next/headers';
 
 export async function POST(req: Request) {
@@ -15,6 +15,8 @@ export async function POST(req: Request) {
         )
     }
 
+    const supabase = await createClient();
+
     // log user out on supabase
     const { error } = await supabase.auth.signOut()
     if ( error ) {
@@ -27,6 +29,10 @@ export async function POST(req: Request) {
     // remove supabase cookies
     cookieStore.delete('sb_access_token');
     cookieStore.delete('sb_refresh_token');
+
+    // remove spotify cookies
+    cookieStore.delete('spotify_access_token');
+    cookieStore.delete('spotify_refresh_token');
 
     return Response.json({ success: true });
 }
