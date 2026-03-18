@@ -8,12 +8,13 @@ import supabase from '@/lib/supabase/admin';
  * Flow per song:
  *   1. Upsert artist into 'artists' table (dedup by musicbrainz_id)
  *   2. Upsert album into 'albums' table (dedup by musicbrainz_id)
- *   3. Insert song into 'songs' table (dedup by apple_music_id / musicbrainz_id / isrc)
+ *   3. Insert song into 'songs' table (dedup by source_id / musicbrainz_id / isrc)
  *
  * IDs are passed directly since table columns are now text.
  */
 interface UploadSong {
-    apple_music_id: string;
+    source_id: string;
+    platform: 'apple' | 'spotify';
     musicbrainz_id: string;
     musicbrainz_artist_id?: string | null;
     musicbrainz_release_id?: string | null;
@@ -43,17 +44,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        const details: { apple_music_id: string; action: 'inserted' | 'skipped'; reason?: string }[] = [];
+        const details: { source_id: string; platform: string; action: 'inserted' | 'skipped'; reason?: string }[] = [];
         let inserted = 0;
         let skipped = 0;
 
         for (const song of songs) {
-            if (!song.apple_music_id || !song.musicbrainz_id) {
-                details.push({ apple_music_id: song.apple_music_id || 'unknown', action: 'skipped', reason: 'Missing required field' });
+            if (!song.source_id || !song.musicbrainz_id || !song.platform) {
+                details.push({ 
+                    source_id: song.source_id || 'unknown', 
+                    platform: song.platform || 'unknown',
+                    action: 'skipped', 
+                    reason: 'Missing required field' 
+                });
                 skipped++;
                 continue;
             }
-            console.log(`[upload] Song ${song.apple_music_id}: artist_mb=${song.musicbrainz_artist_id}, release_mb=${song.musicbrainz_release_id}, isrc=${song.isrc}`);
+            console.log(`[upload] Song ${song.source_id} (${song.platform}): artist_mb=${song.musicbrainz_artist_id}, release_mb=${song.musicbrainz_release_id}, isrc=${song.isrc}`);
 
             // ==================== 1. ARTIST ====================
             let artistDbId: number | null = null;
@@ -77,8 +83,13 @@ export async function POST(req: NextRequest) {
                         .single();
 
                     if (artistErr) {
-                        console.error(`Failed to insert artist for song ${song.apple_music_id}:`, artistErr);
-                        details.push({ apple_music_id: song.apple_music_id, action: 'skipped', reason: `Artist insert failed: ${artistErr.message}` });
+                        console.error(`Failed to insert artist for song ${song.source_id} (${song.platform}):`, artistErr);
+                        details.push({ 
+                            source_id: song.source_id, 
+                            platform: song.platform, 
+                            action: 'skipped', 
+                            reason: `Artist insert failed: ${artistErr.message}` 
+                        });
                         skipped++;
                         continue;
                     }
@@ -87,7 +98,12 @@ export async function POST(req: NextRequest) {
             }
 
             if (artistDbId === null) {
-                details.push({ apple_music_id: song.apple_music_id, action: 'skipped', reason: 'No artist data available' });
+                details.push({ 
+                    source_id: song.source_id, 
+                    platform: song.platform, 
+                    action: 'skipped', 
+                    reason: 'No artist data available' 
+                });
                 skipped++;
                 continue;
             }
@@ -114,8 +130,13 @@ export async function POST(req: NextRequest) {
                         .single();
 
                     if (albumErr) {
-                        console.error(`Failed to insert album for song ${song.apple_music_id}:`, albumErr);
-                        details.push({ apple_music_id: song.apple_music_id, action: 'skipped', reason: `Album insert failed: ${albumErr.message}` });
+                        console.error(`Failed to insert album for song ${song.source_id} (${song.platform}):`, albumErr);
+                        details.push({ 
+                            source_id: song.source_id, 
+                            platform: song.platform, 
+                            action: 'skipped', 
+                            reason: `Album insert failed: ${albumErr.message}` 
+                        });
                         skipped++;
                         continue;
                     }
@@ -125,15 +146,21 @@ export async function POST(req: NextRequest) {
 
             // ==================== 3. SONG (with dedup) ====================
 
-            // Check by apple_music_id
-            const { data: existingByApple } = await supabase
+            // Check by platform-specific ID
+            const platformIdField = song.platform === 'apple' ? 'apple_music_id' : 'spotify_id';
+            const { data: existingByPlatform } = await supabase
                 .from('songs')
                 .select('id')
-                .eq('apple_music_id', song.apple_music_id)
+                .eq(platformIdField, song.source_id)
                 .limit(1);
 
-            if (existingByApple && existingByApple.length > 0) {
-                details.push({ apple_music_id: song.apple_music_id, action: 'skipped', reason: 'Song already exists (apple_music_id)' });
+            if (existingByPlatform && existingByPlatform.length > 0) {
+                details.push({ 
+                    source_id: song.source_id, 
+                    platform: song.platform, 
+                    action: 'skipped', 
+                    reason: `Song already exists (${platformIdField})`
+                });
                 skipped++;
                 continue;
             }
@@ -146,7 +173,12 @@ export async function POST(req: NextRequest) {
                 .limit(1);
 
             if (existingByMB && existingByMB.length > 0) {
-                details.push({ apple_music_id: song.apple_music_id, action: 'skipped', reason: 'Song already exists (musicbrainz_id)' });
+                details.push({ 
+                    source_id: song.source_id, 
+                    platform: song.platform, 
+                    action: 'skipped', 
+                    reason: 'Song already exists (musicbrainz_id)' 
+                });
                 skipped++;
                 continue;
             }
@@ -160,7 +192,12 @@ export async function POST(req: NextRequest) {
                     .limit(1);
 
                 if (existingByISRC && existingByISRC.length > 0) {
-                    details.push({ apple_music_id: song.apple_music_id, action: 'skipped', reason: 'Song already exists (isrc)' });
+                    details.push({ 
+                        source_id: song.source_id, 
+                        platform: song.platform, 
+                        action: 'skipped', 
+                        reason: 'Song already exists (isrc)' 
+                    });
                     skipped++;
                     continue;
                 }
@@ -168,11 +205,17 @@ export async function POST(req: NextRequest) {
 
             // Insert song
             const row: Record<string, any> = {
-                apple_music_id: song.apple_music_id,
                 musicbrainz_id: song.musicbrainz_id,
                 artist_id: artistDbId,
                 isrc: song.isrc || "", // Default to "" as the table has a NOT NULL constraint on isrc
             };
+
+            // Set platform-specific ID
+            if (song.platform === 'apple') {
+                row.apple_music_id = song.source_id;
+            } else if (song.platform === 'spotify') {
+                row.spotify_id = song.source_id;
+            }
 
             // Only add album_id if we successfully resolved and inserted an album
             if (albumDbId !== null) {
@@ -184,11 +227,20 @@ export async function POST(req: NextRequest) {
                 .insert(row);
 
             if (insertError) {
-                console.error(`Failed to insert song ${song.apple_music_id}:`, insertError);
-                details.push({ apple_music_id: song.apple_music_id, action: 'skipped', reason: `Insert failed: ${insertError.message}` });
+                console.error(`Failed to insert song ${song.source_id} (${song.platform}):`, insertError);
+                details.push({ 
+                    source_id: song.source_id, 
+                    platform: song.platform, 
+                    action: 'skipped', 
+                    reason: `Insert failed: ${insertError.message}` 
+                });
                 skipped++;
             } else {
-                details.push({ apple_music_id: song.apple_music_id, action: 'inserted' });
+                details.push({ 
+                    source_id: song.source_id, 
+                    platform: song.platform, 
+                    action: 'inserted' 
+                });
                 inserted++;
             }
         }
