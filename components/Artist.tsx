@@ -33,10 +33,10 @@ export default function Artist(props: {
 
     const manualArtist = m ? (
         <div
-            className="flex items-center gap-3 cursor-pointer group"
+            className="flex gap-3 cursor-pointer group mb-2"
             onClick={() => router.push("/artist")}
         >
-            <div className="w-12 h-12 rounded-full overflow-hidden ring-2 ring-[#1DB954] p-0.5 group-hover:ring-[#1ed760] transition-all shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[#1DB954] p-0.5 group-hover:ring-[#1ed760] transition-all shrink-0">
                 {m.image ? (
                     <ImageWithFallback
                         src={m.image}
@@ -45,19 +45,23 @@ export default function Artist(props: {
                     />
                 ) : (
                     <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
-                        <Music className="w-5 h-5 text-gray-600" />
+                        <Music className="w-16 h-16 text-gray-600" />
                     </div>
                 )}
             </div>
-            <div className="flex-1 min-w-0">
-                <p className="text-white text-xs truncate">
-                    {m.name}
-                </p>
-                {m.genres.length > 0 && (
-                    <p className="text-gray-500 text-[10px] truncate">
-                        {m.genres.slice(0, 2).join(", ")}
+
+            <div className="flex-1 min-w-0 bg-[hsl(0,0%,6%)] p-2 rounded-lg">
+                <div className='ml-2'>
+                    <p className="text-white text-s truncate font-bold mb-.5">
+                        {m.name}
                     </p>
-                )}
+                    {m.genres.length > 0 && (
+                        <p className="text-gray-500 text-xs truncate">
+                            {m.genres.slice(0, 2).join(", ")}
+                        </p>
+                    )}
+                </div>
+
             </div>
         </div>
     ) : null;
@@ -76,10 +80,10 @@ export default function Artist(props: {
         <>
             {m ? (
                 manualArtist
-            ): (
+            ) : (
                 loadingArtist
             )
-}
+            }
         </>
     );
 }

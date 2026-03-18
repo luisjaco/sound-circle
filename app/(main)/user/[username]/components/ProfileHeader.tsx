@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
 import ProfilePicture from '@/components/img/ProfilePicture';
 
-export default function ProfileHeader(props: {
+type Props = {
     userId: string,
     username: string,
     isOwner: boolean,
@@ -17,25 +17,46 @@ export default function ProfileHeader(props: {
     reviews: number,
     followers: number,
     following: number
-}) {
+}
+
+export default function ProfileHeader({
+    userId,
+    username,
+    isOwner,
+    name,
+    city,
+    state,
+    bio,
+    profileUrl,
+    reviews,
+    followers,
+    following,
+}: Props) {
     const router = useRouter();
 
     /** @todo follower count, other.... */
     return (
         <div className="py-6 border-b border-gray-800">
-            <div className="flex items-start gap-6 mb-6">
-                <ProfilePicture 
-                    src={props.profileUrl}
-                    size={24}
+            <div className="flex items-center gap-6 mb-6">
+                <ProfilePicture
+                    src={profileUrl}
+                    size={40}
                 />
-                
+
                 <div className="flex-1">
                     <h2 className="text-2xl font-bold text-white mb-2">
-                        {props.username}
+                        {username}
                     </h2>
-                    <p className="text-gray-400 text-sm mb-4">
-                        {props.bio}
+                    <p className="text-gray-400 text-sm">
+                        {bio}
                     </p>
+                    <p className="text-gray-400 text-sm mb-2">
+                        {`${city ? city : ''
+                            }${((city && state) ? ', ' : "")
+                            }${state ? state : ""
+                            }`}
+                    </p>
+
 
                     {/* Connected Services */}
                     <div className="flex gap-3 mb-4">
@@ -57,28 +78,31 @@ export default function ProfileHeader(props: {
 
                     <div className="flex gap-6">
                         <div className="text-center">
-                            <p className="text-white font-bold text-lg">{props.reviews}</p>
+                            <p className="text-white font-bold text-lg">{reviews}</p>
                             <p className="text-gray-400 text-sm">Reviews</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-white font-bold text-lg">{props.followers}</p>
+                            <p className="text-white font-bold text-lg">{followers}</p>
                             <p className="text-gray-400 text-sm">Followers</p>
                         </div>
                         <div className="text-center">
-                            <p className="text-white font-bold text-lg">{props.following}</p>
+                            <p className="text-white font-bold text-lg">{following}</p>
                             <p className="text-gray-400 text-sm">Following</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <Button
-                variant="outline"
-                className="w-full border-gray-700 bg-transparent hover:bg-[#181818] text-white rounded-full"
-                onClick={() => router.push("/edit-profile")}
-            >
-                Edit Profile
-            </Button>
+            {isOwner && (
+                <Button
+                    variant="outline"
+                    className="w-full border-gray-700 bg-transparent hover:bg-[#181818] text-white rounded-full cursor-pointer"
+                    onClick={() => router.push("/edit-profile")}
+                >
+                    Edit Profile
+                </Button>
+            )}
+
         </div>
     )
 }
