@@ -1,5 +1,15 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+type Genre = {
+  id: number,
+  genre: string
+}
+
+type Artist = {
+  id: string,
+  name: string
+}
+
 export async function validateUsernameSB(username: string) {
   let errorMessage = '';
   let result = false;
@@ -40,6 +50,17 @@ export async function createUser(
   }
 
   const uuid = sessionData.user.id;
+
+  // ensure user not in tables already
+  const userQueryResult = await fetch(`/api/supabase/users?id=${uuid}`)
+  const userQueryData = await userQueryResult.json();
+
+  if (!userQueryResult.ok) {
+    return false;
+  } else if (userQueryData.length > 0) {
+    console.error('user already has profile!')
+    return false;
+  } 
 
   // profile image
   let imagePath = '';
@@ -113,3 +134,56 @@ export async function createUser(
   }
 }
 
+export async function searchGenres(genre: string) {
+  let genres: Genre[];
+  let result: boolean;
+
+  try {
+    const res = await fetch(`/api/supabase/genres?genre=${encodeURIComponent(genre)}`);
+
+    if (!res.ok) {
+      genres = [];
+      result = false;
+    } else {
+      const data = await res.json();
+      const filteredResults = (data || []).filter((x: Genre) =>
+        x.genre.toLowerCase()
+      );
+      genres = filteredResults;
+      result = true;
+    }
+  } catch (err) {
+    console.error("Genre search failed", err);
+    genres = []
+    result = false;
+  }
+
+  return { genres: genres, result: result }
+};
+
+export async function searchArtists(artist: string) {
+  let artists: Artist[];
+  let result: boolean;
+
+  try {
+    const res = await fetch(`/api/musicbrainz/artist-search?q=${encodeURIComponent(artist)}&limit=10`);
+
+    if (!res.ok) {
+      artists = [];
+      result = false;
+    } else {
+      const data = await res.json();
+      const filteredResults = (data.results || []).filter((x: Artist) =>
+        x.name.toLowerCase()
+      );
+      artists = filteredResults;
+      result = true;
+    }
+  } catch (err) {
+    console.error('Artist seach failed', err);
+    artists = [];
+    result = false;
+  }
+
+  return { artists: artists, result: result };
+};
