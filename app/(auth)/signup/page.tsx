@@ -3,7 +3,6 @@
 // app/signup/page.tsx
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import AuthCard from "@/components/AuthCard";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { useState } from 'react';
@@ -79,7 +78,7 @@ export default function SignUpPage() {
         </div>
 
         {/* outer dark card (rounded) */}
-        <AuthCard>
+        <div className="auth-card">
           {/* inner grey panel that holds the inputs */}
           <div className="form-panel">
             <label hidden={!error} >Invalid email and password combination.</label> { /** @todo logan */}
@@ -116,7 +115,7 @@ export default function SignUpPage() {
 
             </form>
           </div>
-        </AuthCard>
+        </div>
 
         <p className="text-center text-sm text-(--muted) mt-6">
           Already have an account?{" "}

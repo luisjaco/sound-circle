@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Logo from "@/components/Logo";
-import AuthCard from "@/components/AuthCard";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import { useState } from 'react';
@@ -42,7 +41,7 @@ export default function LoginPage() {
           <p className="text-(--muted) mt-2">Log in to continue your music journey</p>
         </div>
 
-        <AuthCard>
+        <div className="auth-card">
           <div className="form-panel">
             <form className="space-y-0" method="post" onSubmit={handleSubmit}>
               <label className='text-red-500 text-sm mt-2' hidden={!error} >Invalid email or password.</label> { /** @todo logan */}
@@ -72,7 +71,7 @@ export default function LoginPage() {
               </div>
             </form>
           </div>
-        </AuthCard>
+        </div>
 
         <p className="text-center text-sm text-(--muted) mt-6">
           Don't have an account? <Link href="/signup" className="text-(--brand)">Sign Up</Link>
