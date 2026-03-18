@@ -26,14 +26,48 @@ export default function Artist(
     const [artistError, setArtistError] = useState('');
     const [query, setQuery] = useState("");
     const [working, setWorking] = useState(false);
+    const [savingArtistId, setSavingArtistId] = useState<string | null>(null);
     const [artistSearchResults, setArtistSearchResults] = useState<Artist[]>([]);
     const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    function addArtist(artist: { id: string; name: string }) {
+    /**
+     * When the user clicks an artist from the search results:
+     * 1. Call our Supabase artists API with the musicbrainz_id
+     * 2. The API checks if the artist already exists — if yes, returns the row; if not, creates one
+     * 3. Store the Supabase artist row id in local state so it can be used for user_favorite_artists later
+     */
+    async function addArtist(artist: { id: string; name: string }) {
         if (!artist || !artist.id) return;
         if (favoriteArtists.some(a => a.id === artist.id) || favoriteArtists.length >= 3) return;
-        setFavoriteArtists((p) => [...p, artist]);
+
+        setSavingArtistId(artist.id);
         setArtistError('');
+
+        try {
+            const res = await fetch('/api/supabase/artists', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    musicbrainz_id: artist.id,
+                    name: artist.name,
+                }),
+            });
+
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.error || 'Failed to save artist');
+            }
+
+            const { artist: dbArtist } = await res.json();
+
+            // Use the Supabase-generated id as the artist id for user_favorite_artists
+            setFavoriteArtists((p) => [...p, { id: dbArtist.id, name: artist.name }]);
+        } catch (err: any) {
+            console.error('Error saving artist to Supabase:', err);
+            setArtistError(err.message || 'Failed to save artist. Please try again.');
+        } finally {
+            setSavingArtistId(null);
+        }
     }
 
     function removeArtist(id: string) {
@@ -137,14 +171,17 @@ export default function Artist(
                                     artistSearchResults.map((artist) => (
                                         <button
                                             key={artist.id}
-                                            className="w-full text-left p-3 hover:bg-[rgba(255,255,255,0.05)] transition border-b border-[rgba(255,255,255,0.05)] last:border-b-0 cursor-pointer"
+                                            disabled={savingArtistId === artist.id}
+                                            className="w-full text-left p-3 hover:bg-[rgba(255,255,255,0.05)] transition border-b border-[rgba(255,255,255,0.05)] last:border-b-0 disabled:opacity-50"
                                             onClick={() => {
                                                 addArtist({ id: artist.id, name: artist.name });
                                                 setQuery("");
                                                 setArtistSearchResults([]);
                                             }}
                                         >
-                                            <div className="text-white text-sm font-medium">{artist.name}</div>
+                                            <div className="text-white text-sm font-medium">
+                                                {savingArtistId === artist.id ? 'Saving...' : artist.name}
+                                            </div>
                                         </button>
                                     ))
                                 ) : (

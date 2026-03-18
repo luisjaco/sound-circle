@@ -115,19 +115,19 @@ export async function createUser(
     .from('user_favorite_genres')
     .insert(favoriteGenres);
 
-  /** @TODO currently, skip adding artists. */
-  // const favoriteArtists = artistPicks.map((x) => ({user_id: uuid, artist_id: x.id}));
-  // const favoriteArtistQuery = supabase
-  //   .from('user_favorite_artists')
-  //   .insert(favoriteArtists);
+  // user_favorite_artists insert (artist.id is the Supabase artists table id)
+  const favoriteArtists = artistPicks.map((x) => ({ user_id: uuid, artist_id: x.id }));
+  const favoriteArtistQuery = supabase
+    .from('user_favorite_artists')
+    .insert(favoriteArtists);
 
-  const queries = [favoriteGenreQuery] //, favoriteArtistQuery];
+  const queries = [favoriteGenreQuery, favoriteArtistQuery];
 
-  const [genres] = await Promise.all(queries);
+  const [genres, artists] = await Promise.all(queries);
 
-  if (genres.error) { //|| artists.error ) {
+  if (genres.error || artists.error) {
     if (genres.error) console.log("user_favorite_genres error", genres.error);
-    // if (artists.error) console.log("user_favorite_artists error", artists.error);
+    if (artists.error) console.log("user_favorite_artists error", artists.error);
     return false;
   } else {
     return true;

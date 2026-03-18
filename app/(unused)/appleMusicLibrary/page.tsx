@@ -237,7 +237,7 @@ export default function AppleMusicLibraryPage() {
                     if (r.ok) { const d = await r.json(); isrc = d.tracks?.[0]?.isrc || undefined; }
                 }
             } catch { /* continue */ }
-            const mbRes = await fetch('/api/musicbrainz/lookup', {
+            const mbRes = await fetch('/api/musicbrainz/track-lookup', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tracks: [{ appleMusicId: track.id, name: track.attributes.name, artistName: track.attributes.artistName, isrc }] }),
             });
