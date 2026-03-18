@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
         
         const host = request.headers.get('host');
         const protocol = request.headers.get('x-forwarded-proto') || 'http';
-        const response = NextResponse.redirect(`${protocol}://${host}/onboarding?step=4`);
+        const response = NextResponse.redirect(`${protocol}://${host}/onboarding?step=6`);
 
         response.cookies.set('spotify_access_token', tokenData.access_token, { 
             httpOnly: true,                                       // invisible to client-side JS, sent only in HTTP requests (prevents XSS token theft)

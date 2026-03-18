@@ -53,7 +53,7 @@ export default function StreamingServices({
 
                 <div className="space-y-4 mb-6">
                     <button
-                        onClick={/** @todo spotify */ () => 0}
+                        onClick={() => window.location.href = '/api/spotify/auth'}
                         className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black"
                     >
                         <img
