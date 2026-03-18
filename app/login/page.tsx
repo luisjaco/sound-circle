@@ -76,7 +76,7 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <Logo className="mx-auto mb-6 animate-spin-slow" />
           <h1 className="text-3xl font-extrabold">Welcome Back</h1>
-          <p className="text-[var(--muted)] mt-2">Log in to continue your music journey</p>
+          <p className="text-(--muted) mt-2">Log in to continue your music journey</p>
         </div>
 
         <AuthCard>
@@ -98,7 +98,7 @@ export default function LoginPage() {
                 <div />
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-[var(--brand)] forgot-link"
+                  className="text-sm text-(--brand) forgot-link"
                 >
                   Forgot password?
                 </Link>
@@ -111,8 +111,8 @@ export default function LoginPage() {
           </div>
         </AuthCard>
 
-        <p className="text-center text-sm text-[var(--muted)] mt-6">
-          Don't have an account? <Link href="/signup" className="text-[var(--brand)]">Sign Up</Link>
+        <p className="text-center text-sm text-(--muted) mt-6">
+          Don't have an account? <Link href="/signup" className="text-(--brand)">Sign Up</Link>
         </p>
       </div>
     </main>

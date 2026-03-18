@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 export async function GET(req: Request) {
     const supabase = await createClient();
 
-    const { searchParams } = new URL(req.url); 
+    const { searchParams } = new URL(req.url);
 
     const username = searchParams.get('username');
     const id = searchParams.get('id');
@@ -44,6 +44,6 @@ export async function GET(req: Request) {
 
     return Response.json(
         { error: 'Bad Request' },
-        { status: 400}
+        { status: 400 }
     );
 }

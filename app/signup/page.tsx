@@ -75,7 +75,7 @@ export default function SignUpPage() {
         <div className="text-center mb-8">
           <Logo className="mx-auto mb-6 animate-spin-slow" />
           <h1 className="text-3xl font-extrabold">Join <span style={{ color: "white" }}>Sound</span><span style={{ color: "var(--brand)" }}>Circle</span></h1>
-          <p className="text-[var(--muted)] mt-2">Create your account to start reviewing</p>
+          <p className="text-(--muted) mt-2">Create your account to start reviewing</p>
         </div>
 
         {/* outer dark card (rounded) */}
@@ -101,7 +101,7 @@ export default function SignUpPage() {
                 <label className="input-label">Confirm Password</label>
                 <Input className="w-full" name="password" placeholder="••••••••" type="password" onChange={(e) => setConfirmPassword(e.target.value)} />
               </div>
-              <p className="text-sm text-[var(--muted)] mb-6">
+              <p className="text-sm text-(--muted) mb-6">
                 A valid password has:
                 <br />- Minimum 8 characters in length.
                 <br />- At least one uppercase English letter.
@@ -118,13 +118,13 @@ export default function SignUpPage() {
           </div>
         </AuthCard>
 
-        <p className="text-center text-sm text-[var(--muted)] mt-6">
+        <p className="text-center text-sm text-(--muted) mt-6">
           Already have an account?{" "}
-          <Link href="/login" className="text-[var(--brand)]">Log In</Link>
+          <Link href="/login" className="text-(--brand)">Log In</Link>
         </p>
 
         <div className="info-box">
-          <p className="text-sm text-[var(--muted)] text-center">
+          <p className="text-sm text-(--muted) text-center">
             You'll be able to connect your Spotify and Apple Music accounts after signing up to import your listening history.
           </p>
         </div>
@@ -132,4 +132,3 @@ export default function SignUpPage() {
     </main>
   );
 }
-
