@@ -8,15 +8,11 @@ import Button from "@/components/Button";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
-import { useEffect } from 'react';
+import { login } from './queries';
 
 export default function LoginPage() {
-  const [supabase, setSupabase] = useState<any>(null);
 
-  useEffect(() => {
-    setSupabase(createClient());
-  }, []);
-
+  const supabase = createClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(false);
@@ -24,49 +20,16 @@ export default function LoginPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!supabase) return;
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password
-    })
+    setError(false);
 
-    if (error) {
-      setError(true);
-    } else {
+    const { result, redirect } = await login(supabase, email, password);
+
+    if (result) {
       setError(false);
-
-      const registered = await isUserRegistered();
-
-      if (registered === null) {
-        setError(false);
-        await supabase.auth.signOut();
-      } else {
-        /** @todo set reroute when home page is made, dynamic depending on if user registered. */
-        registered ? router.push('/home') : router.push('/onboarding');
-      }
-    }
-  }
-
-  async function isUserRegistered(): Promise<null | boolean> {
-    const session = await fetch('/api/auth/session');
-    const sessionData = await session.json();
-
-    if (!session.ok) {
-      return null;
-    }
-
-    const res = await fetch(`/api/supabase/users?id=${sessionData.user.id}`)
-    const data = await res.json();
-
-    console.log(data);
-    if (!res.ok) {
-      /** @todo handle error. */
-      return null;
-    } else if (data.length === 0) {
-      return false
+      router.push(redirect);
     } else {
-      return true;
+      setError(true);
     }
   }
 
@@ -82,7 +45,7 @@ export default function LoginPage() {
         <AuthCard>
           <div className="form-panel">
             <form className="space-y-0" method="post" onSubmit={handleSubmit}>
-              <label hidden={!error} >Invalid email or password.</label> { /** @todo logan */}
+              <label className='text-red-500 text-sm mt-2' hidden={!error} >Invalid email or password.</label> { /** @todo logan */}
 
               <div className="form-row">
                 <label className="input-label">Email</label>
