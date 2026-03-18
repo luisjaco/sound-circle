@@ -58,7 +58,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     if (componentState === 'success') {
       // move to user page if final step
       if (currentStep === totalSteps) {
-        router.push(`/${username}`); 
+        router.push(`/user/${username}`); 
         return;
       }
 

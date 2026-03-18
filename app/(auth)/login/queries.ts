@@ -17,7 +17,7 @@ export async function login(supabase: SupabaseClient, email: string, password: s
             result = false;
         } else {
             result = true
-            redirect = registered ? `/${username}` : '/onboarding';
+            redirect = registered ? `/user/${username}` : '/onboarding';
         }
     }
 

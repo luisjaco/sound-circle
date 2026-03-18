@@ -96,15 +96,6 @@ export function HomeFeed({ onNavigate }: HomeFeedProps) {
 
   return (
     <div className="min-h-screen bg-black pb-20">
-      {/* Header */}
-      <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4">
-          <h1 className="text-2xl font-bold text-white">
-            Sound<span className="text-[#1DB954]">Circle</span>
-          </h1>
-        </div>
-      </header>
-
       {/* Tabs */}
       <div className="max-w-2xl mx-auto px-4 pt-4">
         <div className="flex gap-4 mb-6 border-b border-gray-800">
@@ -148,37 +139,6 @@ export function HomeFeed({ onNavigate }: HomeFeedProps) {
           ))}
         </div>
       </div>
-
-      {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-[#0a0a0a] border-t border-gray-800 z-20">
-        <div className="max-w-2xl mx-auto px-4 py-3 flex justify-around items-center">
-          <button className="flex flex-col items-center gap-1 text-[#1DB954]">
-            <Home className="w-6 h-6" />
-            <span className="text-xs">Home</span>
-          </button>
-          <button
-            onClick={() => onNavigate("search")}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
-          >
-            <Search className="w-6 h-6" />
-            <span className="text-xs">Search</span>
-          </button>
-          <button
-            onClick={() => onNavigate("create")}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-[#1DB954] transition-colors"
-          >
-            <PlusCircle className="w-8 h-8" />
-            <span className="text-xs">Review</span>
-          </button>
-          <button
-            onClick={() => onNavigate("profile")}
-            className="flex flex-col items-center gap-1 text-gray-400 hover:text-white transition-colors"
-          >
-            <User className="w-6 h-6" />
-            <span className="text-xs">Profile</span>
-          </button>
-        </div>
-      </nav>
     </div>
   );
 }

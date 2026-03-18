@@ -1,10 +1,9 @@
 "use client"
 
-import React, { useState, useEffect } from 'react';
-import { ImageWithFallback } from "@/components/img/ImageWithFallback";
-import { Music, User } from 'lucide-react';
+import { Music } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useRouter } from 'next/navigation';
+import ProfilePicture from '@/components/img/ProfilePicture';
 
 export default function ProfileHeader(props: {
     userId: string,
@@ -21,21 +20,14 @@ export default function ProfileHeader(props: {
 }) {
     const router = useRouter();
 
-    //** @todo follower count, other.... */
+    /** @todo follower count, other.... */
     return (
         <div className="py-6 border-b border-gray-800">
             <div className="flex items-start gap-6 mb-6">
-                { props.profileUrl ? (
-                    <ImageWithFallback
+                <ProfilePicture 
                     src={props.profileUrl}
-                    alt="Profile"
-                    className="w-24 h-24 rounded-full object-cover"
+                    size={24}
                 />
-                ) : (
-                    <div className="w-32 h-32 rounded-full bg-[#282828] flex items-center justify-center">
-                        <User className="w-24 h-24 text-gray-600" />
-                    </div>
-                )}
                 
                 <div className="flex-1">
                     <h2 className="text-2xl font-bold text-white mb-2">

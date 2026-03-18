@@ -1,6 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
 import ProfileHeader from './components/ProfileHeader'
-import Header from './components/Header';
 import ProfileBody from './components/ProfileBody';
 import ProfileFooter from './components/ProfileFooter';
 import { getProfile, getProfileStatistics } from './queries'; 
@@ -14,7 +13,6 @@ export default async function ProfilePage({ params }: { params: { username: stri
 
     return (
         <div className="min-h-screen bg-black pb-20">
-            <Header />
             <div className="max-w-2xl mx-auto px-4">
                 <ProfileHeader
                     userId={userId}
@@ -33,6 +31,5 @@ export default async function ProfilePage({ params }: { params: { username: stri
                 <ProfileFooter />
             </div>
         </div>
-
     )
 }

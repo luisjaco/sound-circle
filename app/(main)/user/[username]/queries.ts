@@ -2,7 +2,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from 'next/navigation';
 
 export async function getProfile(supabase: SupabaseClient, username: string) {
-    const isOwner = false;
+    let isOwner = false;
 
     const { data: profile } = await supabase
         .from('users')
@@ -16,7 +16,7 @@ export async function getProfile(supabase: SupabaseClient, username: string) {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-        const isOwner = user?.id === profile.id;
+        isOwner = user?.id === profile.id;
     }
 
     const profileInfo = { username, isOwner, ...profile };
