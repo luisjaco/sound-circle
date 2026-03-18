@@ -1,6 +1,5 @@
 import './globals.css';
 import type { Metadata } from "next";
-import Background from "@/components/Background";
 import { MusicKitProvider } from "@/components/providers/MusicKitProvider";
 
 export const metadata: Metadata = {

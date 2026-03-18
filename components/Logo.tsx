@@ -10,7 +10,7 @@ export default function Logo({ size = 100, className = "" }: LogoProps) {
     <Disc3
       size={size}
       strokeWidth={2}
-      className={`text-[var(--brand)] animate-spin-slow ${className}`}
+      className={`text-(--brand) animate-spin-slow ${className}`}
       aria-hidden
     />
   );
