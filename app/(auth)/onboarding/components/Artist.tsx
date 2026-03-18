@@ -137,7 +137,7 @@ export default function Artist(
                                     artistSearchResults.map((artist) => (
                                         <button
                                             key={artist.id}
-                                            className="w-full text-left p-3 hover:bg-[rgba(255,255,255,0.05)] transition border-b border-[rgba(255,255,255,0.05)] last:border-b-0"
+                                            className="w-full text-left p-3 hover:bg-[rgba(255,255,255,0.05)] transition border-b border-[rgba(255,255,255,0.05)] last:border-b-0 cursor-pointer"
                                             onClick={() => {
                                                 addArtist({ id: artist.id, name: artist.name });
                                                 setQuery("");
@@ -170,7 +170,7 @@ export default function Artist(
                                         <span className="text-white">{artist.name}</span>
                                         <button
                                             onClick={() => removeArtist(artist.id)}
-                                            className="text-red-500 hover:text-red-400 text-xl ml-1"
+                                            className="text-red-500 hover:text-red-400 text-xl ml-1 cursor-pointer"
                                         >
                                             x
                                         </button>

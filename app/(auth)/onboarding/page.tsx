@@ -180,7 +180,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
               ${((currentStep === 1) || (componentState === 'working')) ?
                 'bg-gray-800 text-gray-600 cursor-not-allowed'
                 :
-                'bg-[#282828] text-white hover:bg-[#383838]'
+                'bg-[#282828] text-white hover:bg-[#383838] cursor-pointer'
               }`
             }
           >
@@ -194,7 +194,7 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
               ${componentState === 'working' ?
                 'bg-gray-800 text-gray-600 cursor-not-allowed'
                 :
-                'bg-[#1DB954] hover:bg-[#1ed760] text-black`'
+                'bg-[#1DB954] hover:bg-[#1ed760] text-black cursor-pointer'
               }`
             }
           >

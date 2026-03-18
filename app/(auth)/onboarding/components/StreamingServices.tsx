@@ -39,7 +39,7 @@ export default function StreamingServices({
     useEffect(() => {
         if (arrowPress === 0) return; // skip inital load
 
-        // no need for check here: will either be file or no file.
+        // no need for check here
         setComponentState('success')
     }, [arrowPress])
 
@@ -54,7 +54,7 @@ export default function StreamingServices({
                 <div className="space-y-4 mb-6">
                     <button
                         onClick={() => window.location.href = '/api/spotify/auth'}
-                        className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black"
+                        className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black overflow-hidden"
                     >
                         <img
                             src="/brand/spotify.svg"
@@ -66,7 +66,10 @@ export default function StreamingServices({
                     <button
                         onClick={handleAppleMusicConnect}
                         disabled={isAuthorizingApple || isAuthorized}
-                        className={`w-full flex items-center justify-center gap-3 bg-white hover:bg-gray-100 text-black py-4 rounded-full font-medium transition-colors ${isAuthorized ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        className={`w-full flex items-center justify-center gap-3 bg-white 
+                            hover:bg-gray-100 text-black py-4 rounded-full font-medium 
+                            transition-colors overflow-hidden 
+                            ${isAuthorized ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                     >
                         {isAuthorizingApple ? (
                             <Loader2 className="w-6 h-6 animate-spin text-black" />

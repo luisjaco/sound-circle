@@ -46,7 +46,7 @@ export default function ProfilePicture({
         <div className="flex flex-col h-full">
             <div className="flex-1">
                 <h2 className="text-white mb-2">Profile photo</h2>
-                <p className="text-gray-400 text-lg mb-8">Add a photo so people recognise you. (Optional)</p>
+                <p className="text-gray-400 text-lg mb-8">Add a photo so people recognize you. (Optional)</p>
 
                 <div className="flex flex-col items-center gap-6">
                     {profilePictureUrl ? (
@@ -58,7 +58,7 @@ export default function ProfilePicture({
                             />
                             <button
                                 onClick={handleRemovePhoto}
-                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-red-600 transition-colors text-2xl leading-none"
+                                className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-8 h-8 flex justify-center items-center hover:bg-red-600 transition-colors text-2xl leading-none cursor-pointer"
                             >
                                 x
                             </button>
@@ -73,7 +73,7 @@ export default function ProfilePicture({
 
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="w-full bg-[#282828] hover:bg-[#383838] text-white py-3 rounded-lg transition-colors"
+                            className="w-full bg-[#282828] hover:bg-[#383838] text-white py-3 rounded-lg transition-colors cursor-pointer"
                         >
                             Upload photo
                         </button>
