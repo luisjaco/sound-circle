@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
             .from('artists')
             .insert({
                 musicbrainz_id,
+                name
             })
             .select('*')
             .single();

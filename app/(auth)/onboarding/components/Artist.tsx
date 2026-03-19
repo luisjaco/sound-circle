@@ -44,6 +44,7 @@ export default function Artist(
         setArtistError('');
 
         try {
+            /** @todo alter this: -> route when it looks for artists, if artist not in db, route will call this to insert, rather than doing it from here */
             const res = await fetch('/api/supabase/artists', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
