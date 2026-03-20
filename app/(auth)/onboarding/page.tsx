@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Disc3, Loader2, Search } from 'lucide-react';
 import Username from './components/Username';
 import Informtion from './components/Information';
@@ -28,7 +28,6 @@ type Artist = {
 export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
 
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 7;
@@ -70,13 +69,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     // reset, even if failure
     setComponentState('inactive');
   }, [componentState])
-
-  useEffect(() => {
-    const step = searchParams.get('step');
-    if (step) {
-      setCurrentStep(Number(step));
-    }
-  }, [])
 
   const handleBack = () => {
     if (currentStep > 1) {
