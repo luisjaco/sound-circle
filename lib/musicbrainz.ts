@@ -6,8 +6,8 @@
  * Rate limit: max 1 request per second (MusicBrainz policy).
  */
 
-const MB_BASE = 'https://musicbrainz.org/ws/2';
-const USER_AGENT = 'SoundCircle/1.0.0 (https://github.com/luisjaco/sound-circle)';
+export const MB_BASE = 'https://musicbrainz.org/ws/2';
+export const USER_AGENT = 'SoundCircle/1.0.0 (https://github.com/luisjaco/sound-circle)';
 
 //Rate Limiter
 
@@ -77,6 +77,7 @@ export interface MBArtist {
     sortName?: string;
     type?: string;
     country?: string;
+    tags?: object[];
 }
 
 //ISRC Lookup
@@ -162,7 +163,7 @@ export async function searchRecording(
 
 //Artist Search
 
-export async function searchArtist(query: string, limit: number = 5): Promise<MBArtist[]> {
+export async function searchArtist(query: string, limit: number = 5) {
     try {
         if (!query.trim()) return [];
 
@@ -188,12 +189,15 @@ export async function searchArtist(query: string, limit: number = 5): Promise<MB
             sortName: a['sort-name'],
             type: a.type,
             country: a.country,
+            tags: a.tags
         }));
     } catch (err) {
         console.error(`Artist search error for query "${query}":`, err);
         return [];
     }
 }
+
+
 
 //Unified Resolver
 
@@ -271,6 +275,6 @@ export async function resolveTracks(tracks: TrackInput[]): Promise<TrackResult[]
 
 //Helpers
 
-function escapeLucene(str: string): string {
+export function escapeLucene(str: string): string {
     return str.replace(/([+\-&|!(){}[\]^"~*?:\\/])/g, '\\$1');
 }

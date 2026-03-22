@@ -1,70 +1,61 @@
 "use client"
 
-/**@todo 
- * given an artistId or musicBrainzId:
- * this component will use an api router which returns the artists profile image, genre, and such
- * it will show the loading component while its loading the response, and once the query has returned
- * it will show the artist data. (manage with state)
- * 
- * note: when this is done, remove the all mentions of 'manualOverride' and 'm' within this component
- */
-
-
 import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from './img/ImageWithFallback';
-import { Music } from 'lucide-react';
+import { Music, SquareUserRound, User } from 'lucide-react';
+import { useEffect } from 'react';
 
-export default function Artist(props: {
-    key: number,
-    artistId: number,
-    spotifyId?: string,
-    appleMuiscId?: string,
-    musicBrainzId?: string,
-    manualOverride?: {
-        artistId: number,
-        name: string,
-        image: string,
-        genres: string[],
-    }
-}) {
+type Props = {
+    id: string,
+    name: string,
+    spotify_image: string,
+}
+
+
+export default function Artist({
+    id,
+    name,
+    spotify_image
+}: Props) {
 
     const router = useRouter();
-    const m = props.manualOverride;
 
-    const manualArtist = m ? (
+    useEffect(() => {
+        console.log(spotify_image);
+    }, [])
+
+
+    const artist = (
         <div
             className="flex gap-3 cursor-pointer group mb-2"
-            onClick={() => router.push("/artist")}
+            onClick={() => router.push(`/artist/${id}`)}
         >
             <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[#1DB954] p-0.5 group-hover:ring-[#1ed760] transition-all shrink-0">
-                {m.image ? (
+                {spotify_image ? (
                     <ImageWithFallback
-                        src={m.image}
-                        alt={m.name}
+                        src={spotify_image}
+                        alt={`image of song artist: ${name}`}
                         className="w-full h-full rounded-full object-cover"
                     />
                 ) : (
                     <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center">
-                        <Music className="w-16 h-16 text-gray-600" />
+                        <SquareUserRound className="w-8 h-8 text-gray-600" />
                     </div>
                 )}
             </div>
 
             <div className="flex-1 min-w-0 bg-[hsl(0,0%,6%)] p-2 rounded-lg">
                 <div className='ml-2'>
-                    <p className="text-white text-s truncate font-bold mb-.5">
-                        {m.name}
+                    <p className="text-white text-base truncate font-bold mb-.5">
+                        {name}
                     </p>
-                    {m.genres.length > 0 && (
-                        <p className="text-gray-500 text-xs truncate">
-                            {m.genres.slice(0, 2).join(", ")}
-                        </p>
-                    )}
+                    <p className="text-gray-500 text-s truncate">
+                        Artist
+                    </p>
                 </div>
-
             </div>
         </div>
-    ) : null;
+    );
 
     const loadingArtist = (
         <div className="flex items-center gap-3" style={{ animationDelay: `150ms` }}>
@@ -78,12 +69,7 @@ export default function Artist(props: {
 
     return (
         <>
-            {m ? (
-                manualArtist
-            ) : (
-                loadingArtist
-            )
-            }
+            {artist}
         </>
     );
 }

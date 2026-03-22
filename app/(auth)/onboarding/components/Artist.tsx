@@ -40,35 +40,8 @@ export default function Artist(
         if (!artist || !artist.id) return;
         if (favoriteArtists.some(a => a.id === artist.id) || favoriteArtists.length >= 3) return;
 
-        setSavingArtistId(artist.id);
+        setFavoriteArtists((p) => [...p, { id: artist.id, name: artist.name }]);
         setArtistError('');
-
-        try {
-            /** @todo alter this: -> route when it looks for artists, if artist not in db, route will call this to insert, rather than doing it from here */
-            const res = await fetch('/api/supabase/artists', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    musicbrainz_id: artist.id,
-                    name: artist.name,
-                }),
-            });
-
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.error || 'Failed to save artist');
-            }
-
-            const { artist: dbArtist } = await res.json();
-
-            // Use the Supabase-generated id as the artist id for user_favorite_artists
-            setFavoriteArtists((p) => [...p, { id: dbArtist.id, name: artist.name }]);
-        } catch (err: any) {
-            console.error('Error saving artist to Supabase:', err);
-            setArtistError(err.message || 'Failed to save artist. Please try again.');
-        } finally {
-            setSavingArtistId(null);
-        }
     }
 
     function removeArtist(id: string) {

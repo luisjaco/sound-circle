@@ -153,7 +153,7 @@ export default function Confirmation({
                         <textarea
                             value={bio}
                             disabled={true}
-                            className="w-full bg-[#282828] text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors resize-none"
+                            className="w-full field-sizing-content bg-[#282828] text-white px-4 py-3 rounded-lg border-2 border-transparent focus:border-[#1DB954] outline-none transition-colors resize-none"
                         />
                     </div>
                     <div>

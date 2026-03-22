@@ -1,4 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
+import { MB_BASE, USER_AGENT } from "@/lib/musicbrainz";
 
 type Genre = {
   id: number,
@@ -8,6 +9,14 @@ type Genre = {
 type Artist = {
   id: string,
   name: string
+}
+
+type CompletedArtist = {
+  id: string,
+  name: string,
+  musicbrainz_id: string,
+  spotify_id: string,
+  apple_music_id: string,
 }
 
 export async function validateUsernameSB(username: string) {
@@ -39,8 +48,8 @@ export async function createUser(
   username: string,
   city: string,
   state: string,
-  genrePicks: { id: number, genre: string }[],
-  artistPicks: { id: string, name: string }[]
+  favoriteGenres: { id: number, genre: string }[],
+  favoriteArtists: { id: string, name: string }[]
 ) {
   const session = await fetch('/api/auth/session');
   const sessionData = await session.json();
@@ -60,7 +69,14 @@ export async function createUser(
   } else if (userQueryData.length > 0) {
     console.error('user already has profile!')
     return false;
-  } 
+  }
+
+  // find supabase artist equivalents (previously only held in musicbrainz.)
+  const SBArtists = await querySupabaseArtists(favoriteArtists);
+
+  if (!SBArtists) {
+    return false;
+  }
 
   // profile image
   let imagePath = '';
@@ -110,16 +126,16 @@ export async function createUser(
   }
 
   // user_favorite_genres insert
-  const favoriteGenres = genrePicks.map((x) => ({ user_id: uuid, genre_id: x.id }));
+  const genreQueryFields = favoriteGenres.map((x) => ({ user_id: uuid, genre_id: x.id }));
   const favoriteGenreQuery = supabase
     .from('user_favorite_genres')
-    .insert(favoriteGenres);
+    .insert(genreQueryFields);
 
-  // user_favorite_artists insert (artist.id is the Supabase artists table id)
-  const favoriteArtists = artistPicks.map((x) => ({ user_id: uuid, artist_id: x.id }));
+  // user_favorite_artists insert
+  const artistQueryFields = SBArtists.map((ar) => ({ user_id: uuid, artist_id: ar.id }));
   const favoriteArtistQuery = supabase
     .from('user_favorite_artists')
-    .insert(favoriteArtists);
+    .insert(artistQueryFields);
 
   const queries = [favoriteGenreQuery, favoriteArtistQuery];
 
@@ -166,7 +182,7 @@ export async function searchArtists(artist: string) {
   let result: boolean;
 
   try {
-    const res = await fetch(`/api/musicbrainz/artist-search?q=${encodeURIComponent(artist)}&limit=10`);
+    const res = await fetch(`/api/musicbrainz/artist?q=${encodeURIComponent(artist)}&limit=10`);
 
     if (!res.ok) {
       artists = [];
@@ -180,10 +196,30 @@ export async function searchArtists(artist: string) {
       result = true;
     }
   } catch (err) {
-    console.error('Artist seach failed', err);
+    console.error('Artist search failed', err);
     artists = [];
     result = false;
   }
 
   return { artists: artists, result: result };
+};
+
+async function querySupabaseArtists(artists: Artist[]) {
+  // this function will query for existing entries of supabase artists, if they do not exist,
+  // the route will update the artists table, create new entries, and return the completed list of 
+  // artists
+
+  const res = await fetch('/api/supabase/artists', {
+    method: 'POST',
+    headers: {'Content-type' : 'application/json' },
+    body:  JSON.stringify({artists: artists})
+  });
+
+  if (!res.ok) {
+    return false;
+  }
+
+  const data: CompletedArtist[] = await res.json();
+  console.log(data);
+  return data;
 };

@@ -8,7 +8,7 @@ export async function getSpotifyTokens() {
     const accessToken = cookieStore.get('spotify_access_token')?.value;
     const refreshToken = cookieStore.get('spotify_refresh_token')?.value;
 
-    if(!accessToken || !refreshToken) {
+    if (!accessToken || !refreshToken) {
         return null;
     }
 
@@ -20,7 +20,7 @@ export async function getSpotifyTokens() {
 export async function spotifyFetch(url: string, options: RequestInit = {}, retry = true): Promise<Response> {
     const tokens = await getSpotifyTokens();
 
-    if(!tokens) {
+    if (!tokens) {
         throw new Error("No Spotify tokens found");
     }
 
@@ -34,14 +34,14 @@ export async function spotifyFetch(url: string, options: RequestInit = {}, retry
     });
 
     // anything other than 401 is returned directly (success or non-auth error)
-    if(response.status !== 401) {
+    if (response.status !== 401) {
         return response;
     }
 
     // if access token expired, call the refresh endpoint to get a new one
     const refreshResponse = await fetch('/api/spotify/refresh', { method: 'POST' });
-    
-    if(!refreshResponse.ok) {
+
+    if (!refreshResponse.ok) {
         // refresh token is also invalid, user needs to reconnect spotify
         throw new Error("Spotify session expired, please reconnect");
     }
@@ -49,7 +49,7 @@ export async function spotifyFetch(url: string, options: RequestInit = {}, retry
     // fetch the updated tokens and retry the original request once
     const newTokens = await getSpotifyTokens();
 
-    if(!newTokens) {
+    if (!newTokens) {
         throw new Error('Failed to retrieve refreshed tokens');
     }
 
@@ -60,4 +60,32 @@ export async function spotifyFetch(url: string, options: RequestInit = {}, retry
             Authorization: `Bearer ${newTokens.accessToken}`
         }
     });
+}
+
+export async function getClientToken() {
+    const body = new URLSearchParams ({
+        grant_type: 'client_credentials',
+        client_id: process.env.SPOTIFY_CLIENT_ID as string,
+        client_secret: process.env.SPOTIFY_CLIENT_SECRET as string
+    });
+    
+    const res = await fetch(
+        "https://accounts.spotify.com/api/token",
+        {
+            method: "POST",
+            body,
+            headers: {
+                'Content-type': 'application/x-www-form-urlencoded'
+            }
+        }
+    )
+
+    const data = await res.json();
+
+    if (!res.ok) {
+        console.error('error when retrieving spotify client access token', res);
+        return false;
+    }
+
+    return data;
 }

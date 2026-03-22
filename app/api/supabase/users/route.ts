@@ -15,7 +15,7 @@ export async function GET(req: Request) {
             .eq('username', username);
 
         if (error) {
-            console.log(error);
+            console.error(error);
             return Response.json(
                 { error: 'Invalid Query' },
                 { status: 500 }
@@ -32,7 +32,7 @@ export async function GET(req: Request) {
             .eq('id', id);
 
         if (error) {
-            console.log(error);
+            console.error(error);
             return Response.json(
                 { error: 'Invalid Query' },
                 { status: 500 }
