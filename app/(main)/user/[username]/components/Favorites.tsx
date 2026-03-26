@@ -1,48 +1,41 @@
-'use client'
-import { useState, useEffect } from 'react';
-import { Heart, Loader2, Music } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { ImageWithFallback } from '@/components/img/ImageWithFallback';
+'use server'
+
 import Artist from '@/components/Artist';
 import Album from '@/components/Album';
 import Song from '@/components/Song';
-
-
-type ArtistData = {
-    id: string,
-    name: string,
-    spotify_image: string,
-}
-
-type AlbumData = {
-    id: string,
-    name: string,
-    artist_name: string,
-    spotify_image: string
-}
-
-type SongData = {
-    id: string,
-    name: string,
-    artist_name: string,
-    spotify_image: string
-}
+import { createClient } from '@/lib/supabase/server';
+import {
+    getTopArtists,
+    getArtistComponentData,
+    getTopAlbums,
+    getAlbumComponentData,
+    getTopSongs,
+    getSongComponentData
+} from '../queries';
 
 type Props = {
     userId: string,
-    favoriteArtists: ArtistData[],
-    favoriteAlbums: AlbumData[],
-    favoriteSongs: SongData[]
 }
 
 
-export default function Favorites({
+export default async function Favorites({
     userId,
-    favoriteArtists,
-    favoriteAlbums,
-    favoriteSongs,
 }: Props) {
 
+    const supabase = await createClient();
+
+    const [topArtists, topAlbums, topSongs] = await Promise.all([
+        getTopArtists(supabase, userId, 3),
+        getTopAlbums(supabase, userId, 3),
+        getTopSongs(supabase, userId, 3)
+    ]);
+
+    // grab favorite artists.
+    const [favoriteArtists, favoriteAlbums, favoriteSongs] = await Promise.all([
+        getArtistComponentData(topArtists),
+        getAlbumComponentData(topAlbums),
+        getSongComponentData(topSongs)
+    ]);
 
     const populateArtists = () => {
         // we need top three artists, if user has less than three we will use blank placeholders.

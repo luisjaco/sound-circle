@@ -4,51 +4,8 @@ import { createClient } from '@/lib/supabase/server';
 import ProfileHeader from './components/ProfileHeader'
 import Favorites from './components/Favorites';
 import ProfileFooter from './components/ProfileFooter';
-import {
-    getProfile,
-    getProfileStatistics,
-    getTopArtists,
-    getArtistComponentData,
-    getTopAlbums,
-    getAlbumComponentData,
-    getTopSongs,
-    getSongComponentData
-} from './queries';
-
-type SBArtist = {
-    artist_id: string,
-    artists: {
-        id: string,
-        name: string,
-        spotify_id: string
-    }
-}
-
-type SBAlbum = {
-    album_id: string,
-    albums: {
-        id: string,
-        name: string,
-        spotify_id: string,
-        artists: {
-            id: string,
-            name: string
-        }
-    }
-}
-
-type SBSong = {
-    song_id: string,
-    songs: {
-        id: string,
-        name: string,
-        spotify_id: string,
-        artists: {
-            id: string,
-            name: string
-        }
-    }
-}
+import { getProfile, getProfileStatistics } from './queries';
+import { Suspense } from 'react';
 
 export default async function ProfilePage({ params }: { params: { username: string } }) {
     const supabase = await createClient();
@@ -56,26 +13,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
 
     const { userId, profileInfo } = await getProfile(supabase, username);
 
-    const [
-        statistics, 
-        topArtists, 
-        topAlbums, 
-        topSongs
-    ] = await Promise.all([
-            getProfileStatistics(supabase, userId),
-            getTopArtists(supabase, userId, 3),
-            getTopAlbums(supabase, userId, 3),
-            getTopSongs(supabase, userId, 3)
-        ]);
-
-    const [reviewCount, followers, following] = statistics;
-    
-    // grab favorite artists.
-    const [artistComponentData, albumComponentData, songComponentData] = await Promise.all([
-        getArtistComponentData(topArtists),
-        getAlbumComponentData(topAlbums),
-        getSongComponentData(topSongs)
-    ]);
+    const [reviewCount, followers, following] = await getProfileStatistics(supabase, userId);
 
     return (
         <div className="min-h-screen bg-black pb-20">
@@ -93,12 +31,11 @@ export default async function ProfilePage({ params }: { params: { username: stri
                     followers={followers || 0}
                     following={following || 0}
                 />
-                <Favorites
-                    userId={userId}
-                    favoriteArtists={artistComponentData}
-                    favoriteAlbums={albumComponentData}
-                    favoriteSongs={songComponentData}
-                />
+                <Suspense fallback={<div className="flex py-6 border-b border-gray-800 h-90 w-full"></div>}>
+                    <Favorites
+                        userId={userId}
+                    />
+                </Suspense>
                 <ProfileFooter />
             </div>
         </div>

@@ -51,6 +51,7 @@ export async function getProfile(supabase: SupabaseClient, username: string) {
         .single();
 
     if (!profile) {
+        console.error(`user "${username}" does not exist`);
         notFound();
     }
 
@@ -93,6 +94,7 @@ export async function getProfileStatistics(supabase: SupabaseClient, userId: str
     ]);
 
     if (songReviews.error || albumReviews.error || followers.error || following.error) {
+        console.error(`could not find statistics for user with id: ${userId}`)
         notFound();
     } else {
         const sR = songReviews.count || 0;
@@ -142,8 +144,9 @@ export async function getArtistComponentData(artists: SBArtist[]) {
     let res = ((artists.length === 1) ? await getArtist(spotifyIds[0]) : await getArtists(spotifyIds));
     if (!res) return [];
 
+    console.log(res);
     const artistData = res.artists;
-
+    console.log(artistData)
     // spotify_id : image url
     const validIds: Record<string, string> = { '': '' };
     for (const artist of artistData) {

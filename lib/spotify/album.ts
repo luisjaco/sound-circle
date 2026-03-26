@@ -25,7 +25,7 @@ export async function getAlbum(albumId: string) {
         return false;
     }
 
-    return data;
+    return { albums: [ data ] };
 }
 
 export async function getAlbums(albumIds: string[]) {

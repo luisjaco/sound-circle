@@ -24,7 +24,7 @@ export async function getSong(songId: string) {
         return false;
     }
 
-    return data;
+    return { tracks: [ data ] };
 }
 
 export async function getSongs(songIds: string[]) {

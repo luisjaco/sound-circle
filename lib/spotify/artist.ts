@@ -25,7 +25,7 @@ export async function getArtist(artistId: string) {
         return false;
     }
 
-    return data;
+    return { artists: [ data ] }
 }
 
 export async function getArtists(artistIds: string[]) {
