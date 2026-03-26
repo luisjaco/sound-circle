@@ -18,6 +18,44 @@ export default function StreamingServices({
     const { musicKit, isAuthorized } = useMusicKit();
     const [appleConnectedMessage, setAppleConnectedMessage] = useState('');
     const [isAuthorizingApple, setIsAuthorizingApple] = useState(false);
+    const [spotifyConnected, setSpotifyConnected] = useState(false);
+
+    // check if spotify is already connected when component loads
+    useEffect(() => {
+        fetch('api/spotify/status')
+            .then(res => res.json())
+            .then(data => {
+                if (data.connected) setSpotifyConnected(true);
+            })
+            .catch(() => {});
+    }, []);
+
+    // listen for the success message from the spotify popup after successful oauth
+    useEffect(() => {
+        const handleMessage = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type === 'SPOTIFY_AUTH_SUCCESS') {
+                setSpotifyConnected(true);
+            }
+        };
+
+        window.addEventListener('message', handleMessage);
+        return () => window.removeEventListener('message', handleMessage);
+    }, []);
+
+    const handleSpotifyConnect = () => {
+        // open spotify oauth in a popup window to preserve all onboadring state in the original window
+        const width = 500;
+        const height = 700;
+        const left = window.screenX + (window.outerWidth - width) / 2;
+        const top = window.screenY + (window.outerHeight - height) / 2;
+
+        window.open(
+            'api/spotify/auth',
+            'spotify-auth',
+            `width=${width},height=${height},left=${left},top=${top}`
+        );
+    };
 
     const handleAppleMusicConnect = async () => {
         if (!musicKit) return;
@@ -53,14 +91,24 @@ export default function StreamingServices({
 
                 <div className="space-y-4 mb-6">
                     <button
-                        onClick={() => window.location.href = '/api/spotify/auth'}
-                        className="w-full flex items-center justify-center gap-3 py-4 rounded-full font-medium transition-colors bg-[#1DB954] hover:bg-[#1ed760] text-black overflow-hidden cursor-pointer"
+                        onClick={handleSpotifyConnect}
+                        disabled={spotifyConnected}
+                        className={`w-full flex items-center justify-center gap-3 py-4 rounded-full 
+                            font-medium transition-colors hover:bg-[#1ed760] text-black overflow-hidden
+                            ${spotifyConnected
+                                ? 'bg-[#1DB954] opacity-50 cursor-not-allowed text-black' 
+                                : 'bg-[#1DB954] hover:bg-[#1ed760] text-black cursor-pointer'
+                            }`}
                     >
-                        <img
-                            src="/brand/spotify.svg"
-                            alt="Spotify"
-                            className="w-6 h-6 shrink-0 scale-[10.6] object-contain"
-                        />
+                        {spotifyConnected ? (
+                            <span className="text-sm font-semibold">Connected to Spotify ✓</span>
+                        ) : (
+                            <img
+                                src="/brand/spotify.svg"
+                                alt="Spotify"
+                                className="w-6 h-6 shrink-0 scale-[10.6] object-contain"
+                            />
+                        )} 
                     </button>
 
                     <button

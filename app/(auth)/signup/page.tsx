@@ -63,6 +63,9 @@ export default function SignUpPage() {
       return
     }
 
+    // clear any spotify cookies from a previous account on the same browser
+    await fetch('api/spotify/disconnect', { method: 'POST' });
+
     // move on
     setError(false);
     router.push('/onboarding');
