@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft, ArrowRight, Disc3, Loader2, Search } from 'lucide-react';
 import Username from './components/Username';
 import Informtion from './components/Information';
@@ -10,10 +10,6 @@ import Genre from './components/Genre';
 import Artist from './components/Artist';
 import StreamingServices from './components/StreamingServices';
 import Confirmation from './components/Confirmation';
-
-interface OnboardingPageProps {
-  onNavigate?: (page: string) => void;
-}
 
 type Genre = {
   id: number,
@@ -25,10 +21,9 @@ type Artist = {
   name: string
 }
 
-export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
+export default function OnboardingPage() {
 
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 7;
@@ -70,13 +65,6 @@ export default function OnboardingPage({ onNavigate }: OnboardingPageProps) {
     // reset, even if failure
     setComponentState('inactive');
   }, [componentState])
-
-  useEffect(() => {
-    const step = searchParams.get('step');
-    if (step) {
-      setCurrentStep(Number(step));
-    }
-  }, [])
 
   const handleBack = () => {
     if (currentStep > 1) {
