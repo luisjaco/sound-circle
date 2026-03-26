@@ -1,3 +1,8 @@
+import 'server-only' // define server file
+
+import { getArtist, getArtists } from '@/lib/spotify/artist';
+import { getAlbum, getAlbums } from '@/lib/spotify/album';
+import { getSong, getSongs } from '@/lib/spotify/song';
 import { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from 'next/navigation';
 
@@ -133,26 +138,14 @@ export async function getArtistComponentData(artists: SBArtist[]) {
     if (!(artists.length > 0)) return [];
 
     const spotifyIds = artists.map((x) => x.artists.spotify_id || '');
-    // URL params will leave empty parameters blank.
-    const query = new URLSearchParams({ artistIds: spotifyIds.join(',') })
 
-    // grab data
-    const artistRes = await fetch(`http://localhost:3000/api/spotify/artists?${query.toString()}`);
+    let res = ((artists.length === 1) ? await getArtist(spotifyIds[0]) : await getArtists(spotifyIds));
+    if (!res) return [];
 
-    let artistData = [];
-
-    if (!artistRes.ok) {
-        return [];
-    }
-
-    // match artists back with corresponding artist data.
-    artistData = await artistRes.json();
-    artistData = artistData.artists;
-
-    // O(2n) operation lol
+    const artistData = res.artists;
 
     // spotify_id : image url
-    const validIds: Record<string, string> = { '' : '' };
+    const validIds: Record<string, string> = { '': '' };
     for (const artist of artistData) {
         const id = artist.id as string
         validIds[id] = artist.images[0]?.url || '';
@@ -214,30 +207,18 @@ export async function getTopAlbums(supabase: SupabaseClient, userId: string, lim
     return topAlbums;
 }
 
-/** @TODO untested */
 export async function getAlbumComponentData(albums: SBAlbum[]) {
     if (!(albums.length > 0)) return [];
 
     const spotifyIds = albums.map((x) => x.albums.spotify_id || '');
 
-    // URL params will leave empty parameters blank.
-    const query = new URLSearchParams({ albumIds: spotifyIds.join(',') })
+    let res = ((albums.length === 1) ? await getAlbum(spotifyIds[0]) : await getAlbums(spotifyIds));
+    if (!res) return [];
 
-    // grab data
-    const albumRes = await fetch(`http://localhost:3000/api/spotify/albums?${query.toString()}`);
-
-    let albumData = [];
-
-    if (!albumRes.ok) {
-        return [];
-    }
-
-    // match album back with corresponding album data.
-    albumData = await albumRes.json();
-    albumData = albumData.albums;
+    const albumData = res.albums;
 
     // spotify_id : image url
-    const validIds: Record<string, string> = { '' : '' };
+    const validIds: Record<string, string> = { '': '' };
     for (const album of albumData) {
         const id = album.id as string
         validIds[id] = album.images[0]?.url || '';
@@ -301,30 +282,18 @@ export async function getTopSongs(supabase: SupabaseClient, userId: string, limi
     return topSongs;
 }
 
-/** @todo untested */
 export async function getSongComponentData(songs: SBSong[]) {
     if (!(songs.length > 0)) return [];
 
     const spotifyIds = songs.map((x) => x.songs.spotify_id || '');
 
-    // URL params will leave empty parameters blank.
-    const query = new URLSearchParams({ songIds: spotifyIds.join(',') })
+    let res = ((songs.length === 1) ? await getSong(spotifyIds[0]) : await getSongs(spotifyIds));
+    if (!res) return [];
 
-    // grab data
-    const songRes = await fetch(`http://localhost:3000/api/spotify/songs?${query.toString()}`);
+    const songData = res.tracks;
 
-    let songData = [];
-
-    if (!songRes.ok) {
-        return [];
-    }
-
-    // match song back with corresponding song data.
-    songData = await songRes.json();
-    songData = songData.tracks;
-    
     // spotify_id : image url
-    const validIds: Record<string, string> = { '' : '' };
+    const validIds: Record<string, string> = { '': '' };
     for (const song of songData) {
         const id = song.id as string
         validIds[id] = song.album.images[0]?.url || '';

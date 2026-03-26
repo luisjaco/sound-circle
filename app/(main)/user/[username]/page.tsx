@@ -1,13 +1,15 @@
+"use server"
+
 import { createClient } from '@/lib/supabase/server';
 import ProfileHeader from './components/ProfileHeader'
 import Favorites from './components/Favorites';
 import ProfileFooter from './components/ProfileFooter';
-import { 
-    getProfile, 
+import {
+    getProfile,
     getProfileStatistics,
-    getTopArtists, 
-    getArtistComponentData, 
-    getTopAlbums, 
+    getTopArtists,
+    getArtistComponentData,
+    getTopAlbums,
     getAlbumComponentData,
     getTopSongs,
     getSongComponentData
@@ -53,19 +55,27 @@ export default async function ProfilePage({ params }: { params: { username: stri
     const { username } = await params;
 
     const { userId, profileInfo } = await getProfile(supabase, username);
-    const [reviewCount, followers, following] = await getProfileStatistics(supabase, userId);
 
+    const [
+        statistics, 
+        topArtists, 
+        topAlbums, 
+        topSongs
+    ] = await Promise.all([
+            getProfileStatistics(supabase, userId),
+            getTopArtists(supabase, userId, 3),
+            getTopAlbums(supabase, userId, 3),
+            getTopSongs(supabase, userId, 3)
+        ]);
+
+    const [reviewCount, followers, following] = statistics;
+    
     // grab favorite artists.
-    const topArtists: SBArtist[] = await getTopArtists(supabase, userId, 3);
-    const artistComponentData = await getArtistComponentData(topArtists);
-
-    // grab favorite albums.
-    const topAlbums: SBAlbum[] = await getTopAlbums(supabase, userId, 3);
-    const albumComponentData = await getAlbumComponentData(topAlbums);
-
-    // grab favorite songs.
-    const topSongs: SBSong[] = await getTopSongs(supabase, userId, 3);
-    const songComponentData = await getSongComponentData(topSongs); 
+    const [artistComponentData, albumComponentData, songComponentData] = await Promise.all([
+        getArtistComponentData(topArtists),
+        getAlbumComponentData(topAlbums),
+        getSongComponentData(topSongs)
+    ]);
 
     return (
         <div className="min-h-screen bg-black pb-20">
