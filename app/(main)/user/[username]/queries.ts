@@ -321,13 +321,13 @@ export async function getSongComponentData(songs: SBSong[]) {
 
     // match song back with corresponding song data.
     songData = await songRes.json();
-    songData = songData.songs;
-
+    songData = songData.tracks;
+    
     // spotify_id : image url
     const validIds: Record<string, string> = { '' : '' };
     for (const song of songData) {
         const id = song.id as string
-        validIds[id] = song.images[0]?.url || '';
+        validIds[id] = song.album.images[0]?.url || '';
     }
 
     let completedData: {

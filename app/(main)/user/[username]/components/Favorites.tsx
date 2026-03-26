@@ -4,6 +4,8 @@ import { Heart, Loader2, Music } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ImageWithFallback } from '@/components/img/ImageWithFallback';
 import Artist from '@/components/Artist';
+import Album from '@/components/Album';
+import Song from '@/components/Song';
 
 
 type ArtistData = {
@@ -34,9 +36,11 @@ type Props = {
 }
 
 
-export default function ProfileBody({
+export default function Favorites({
     userId,
-    favoriteArtists
+    favoriteArtists,
+    favoriteAlbums,
+    favoriteSongs,
 }: Props) {
 
 
@@ -57,13 +61,67 @@ export default function ProfileBody({
         }
 
         // cleanup
-        while ( i < 3 ) {
+        while (i < 3) {
             artists.push(<Artist />);
             i++;
         }
 
         return artists;
     }
+
+    const populateAlbums = () => {
+        // we need top three albums, if user has less than three we will use blank placeholders.
+        let i = 0
+        const albums = [];
+
+        for (const album of favoriteAlbums) {
+            albums.push(
+                <Album
+                    id={album.id}
+                    name={album.name}
+                    artistName={album.artist_name}
+                    spotify_image={album.spotify_image}
+                />
+            )
+            i++;
+        }
+
+        // cleanup
+        while (i < 3) {
+            albums.push(<Album />);
+            i++;
+        }
+
+        return albums;
+    }
+
+    const populateSongs = () => {
+        // we need top three songs, if user has less than three we will use blank placeholders.
+        let i = 0
+        const songs = [];
+
+        for (const song of favoriteSongs) {
+            songs.push(
+                <Song
+                    id={song.id}
+                    name={song.name}
+                    /** @todo album name */
+                    artistName={song.artist_name}
+                    spotify_image={song.spotify_image}
+                />
+            )
+            i++;
+        }
+
+        // cleanup
+        while (i < 3) {
+            songs.push(<Song />);
+            i++;
+        }
+
+        return songs;
+    }
+
 
     const artists = (
         <div>
@@ -74,7 +132,7 @@ export default function ProfileBody({
             <div>
                 <div className="flex flex-col gap-3">
                     {
-                        populateArtists().map( (x, key) => {
+                        populateArtists().map((x, key) => {
                             return (
                                 <div key={key}>{x}</div>
                             )
@@ -93,27 +151,13 @@ export default function ProfileBody({
 
             <div>
                 <div className="flex flex-col gap-3">
-                    {favoriteArtists.length > 0 ? (
-                        favoriteArtists.map((artist) => (
-                            <Artist
-                                key={artist.id}
-                                id={artist.id}
-                                name={artist.name}
-                                spotify_image={artist.spotify_image}
-                            />
-                        ))
-                    ) : (
-                        /* Skeleton placeholders when no data */
-                        [0, 1, 2].map((i) => (
-                            <div key={i} className="flex items-center gap-3" style={{ animationDelay: `${i * 150}ms` }}>
-                                <div className="w-12 h-12 rounded-full bg-gray-800 animate-pulse shrink-0" style={{ animationDelay: `${i * 150}ms` }} />
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-3 w-20 bg-gray-800 rounded-full animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
-                                    <div className="h-2 w-14 bg-gray-800/60 rounded-full animate-pulse" style={{ animationDelay: `${i * 150 + 75}ms` }} />
-                                </div>
-                            </div>
-                        ))
-                    )}
+                    {
+                        populateAlbums().map((x, key) => {
+                            return (
+                                <div key={key}>{x}</div>
+                            )
+                        })
+                    }
                 </div>
             </div>
         </div>
@@ -127,31 +171,18 @@ export default function ProfileBody({
 
             <div>
                 <div className="flex flex-col gap-3">
-                    {favoriteArtists.length > 0 ? (
-                        favoriteArtists.map((artist) => (
-                            <Artist
-                                key={artist.id}
-                                id={artist.id}
-                                name={artist.name}
-                                spotify_image={artist.spotify_image}
-                            />
-                        ))
-                    ) : (
-                        /* Skeleton placeholders when no data */
-                        [0, 1, 2].map((i) => (
-                            <div key={i} className="flex items-center gap-3" style={{ animationDelay: `${i * 150}ms` }}>
-                                <div className="w-12 h-12 rounded-full bg-gray-800 animate-pulse shrink-0" style={{ animationDelay: `${i * 150}ms` }} />
-                                <div className="flex-1 space-y-2">
-                                    <div className="h-3 w-20 bg-gray-800 rounded-full animate-pulse" style={{ animationDelay: `${i * 150}ms` }} />
-                                    <div className="h-2 w-14 bg-gray-800/60 rounded-full animate-pulse" style={{ animationDelay: `${i * 150 + 75}ms` }} />
-                                </div>
-                            </div>
-                        ))
-                    )}
+                    {
+                        populateSongs().map((x, key) => {
+                            return (
+                                <div key={key}>{x}</div>
+                            )
+                        })
+                    }
                 </div>
             </div>
         </div>
     )
+
     return (
         <div className="flex py-6 border-b border-gray-800 h-90 w-full items-center">
 
