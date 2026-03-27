@@ -1,17 +1,15 @@
 'use client'
 
-// app/signup/page.tsx
-import Link from "next/link";
-import Logo from "@/components/Logo";
-import Input from "@/components/Input";
-import Button from "@/components/Button";
 import { useState } from 'react';
+import { Disc3, Mail, Lock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/Input';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
 import { useEffect } from 'react';
 
-export default function SignUpPage() {
 
+export default function AuthPage() {
   const [supabase, setSupabase] = useState<any>(null);
 
   useEffect(() => {
@@ -72,65 +70,105 @@ export default function SignUpPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-start justify-center px-6 auth-top">
-      <div className="w-full auth-wrapper">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Logo className="mx-auto mb-6 animate-spin-slow" />
-          <h1 className="text-3xl font-extrabold">Join <span style={{ color: "white" }}>Sound</span><span style={{ color: "var(--brand)" }}>Circle</span></h1>
-          <p className="text-(--muted) mt-2">Create your account to start reviewing</p>
-        </div>
-
-        {/* outer dark card (rounded) */}
-        <div className="auth-card">
-          {/* inner grey panel that holds the inputs */}
-          <div className="form-panel">
-            <label hidden={!error} >Invalid email and password combination.</label> { /** @todo logan */}
-            <label hidden={!userTakenError} >Email is already in use.</label> { /** @todo logan */}
-            <form className="space-y-0" method="post" onSubmit={handleSubmit}>
-              <div className="form-row">
-                <label className="input-label">Email</label>
-                <Input className="w-full" name="email" placeholder="your@email.com" type="email" onChange={(e) => setEmail(e.target.value)} />
-              </div>
-
-              <label hidden={!passwordError}>Invalid password.</label> { /** @todo logan */}
-              <div className="form-row">
-                <label className="input-label">Password</label>
-                <Input className="w-full" name="password" placeholder="••••••••" type="password" onChange={(e) => setPassword(e.target.value)} />
-              </div>
-
-              <label hidden={!confirmPasswordError}>Passwords must match.</label> { /** @todo logan */}
-              <div className="form-row">
-                <label className="input-label">Confirm Password</label>
-                <Input className="w-full" name="password" placeholder="••••••••" type="password" onChange={(e) => setConfirmPassword(e.target.value)} />
-              </div>
-              <p className="text-sm text-(--muted) mb-6">
-                A valid password has:
-                <br />- Minimum 8 characters in length.
-                <br />- At least one uppercase English letter.
-                <br />- At least one lowercase English letter.
-                <br />- At least one digit.
-                <br />- At least one special character.
-              </p>
-
-              <div className="form-row">
-                <Button type="submit" variant="primary" className="w-full">Sign Up</Button>
-              </div>
-
-            </form>
+          <div className="flex justify-center mb-4">
+            <Disc3 className="w-12 h-12 text-[#1DB954]" />
           </div>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Join SoundCircle
+          </h1>
+          <p className="text-gray-400">
+            Create your account to start reviewing
+          </p>
         </div>
 
-        <p className="text-center text-sm text-(--muted) mt-6">
-          Already have an account?{" "}
-          <Link href="/login" className="text-(--brand)">Log In</Link>
-        </p>
+        <div className="bg-[#181818] rounded-lg p-6 mb-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
 
-        <div className="info-box">
-          <p className="text-sm text-(--muted) text-center">
+            <label className='text-red-500 text-sm mt-2' hidden={!error} >Invalid email or password.</label>
+            <label className='text-red-500 text-sm mt-2' hidden={!userTakenError} >This email is already being used.</label>
+            <div>
+              <label className="text-sm text-gray-400 mb-2 block">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="bg-[#282828] border-gray-700 text-white pl-10 py-6 rounded-lg focus:border-[#1DB954] focus:ring-[#1DB954]"
+                />
+              </div>
+            </div>
+
+            <label className='text-red-500 text-sm mt-2' hidden={!passwordError} >Invalid password.</label>
+            <div>
+              <label className="text-sm text-gray-400 mb-2 block">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="bg-[#282828] border-gray-700 text-white pl-10 py-6 rounded-lg focus:border-[#1DB954] focus:ring-[#1DB954]"
+                />
+              </div>
+            </div>
+
+            <label className='text-red-500 text-sm mt-2' hidden={!confirmPasswordError} >Passwords must match</label>
+            <div>
+              <label className="text-sm text-gray-400 mb-2 block">Confirm password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Input
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="bg-[#282828] border-gray-700 text-white pl-10 py-6 rounded-lg focus:border-[#1DB954] focus:ring-[#1DB954]"
+                />
+              </div>
+            </div>
+
+            <p className="text-sm text-(--muted) mb-6">
+              A valid password has:
+              <br />- Minimum 8 characters in length.
+              <br />- At least one uppercase English letter.
+              <br />- At least one lowercase English letter.
+              <br />- At least one digit.
+              <br />- At least one special character.
+            </p>
+            <Button
+              type="submit"
+              className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white py-6 rounded-full font-medium text-lg transition-all hover:scale-105"
+            >
+              Sign Up
+            </Button>
+          </form>
+        </div>
+
+        <div className="text-center mt-6">
+          <p className="text-gray-400 text-sm">
+            {"Already have an account? "}
+            <button
+              onClick={() => router.push('/login')}
+              className="text-[#1DB954] hover:underline font-medium"
+            >
+              Login
+            </button>
+          </p>
+        </div>
+
+
+        <div className="bg-[#181818] rounded-lg p-4 mt-4">
+          <p className="text-gray-400 text-xs text-center">
             You'll be able to connect your Spotify and Apple Music accounts after signing up to import your listening history.
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

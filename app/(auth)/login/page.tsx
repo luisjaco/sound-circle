@@ -1,16 +1,20 @@
 'use client'
 
-import Link from "next/link";
-import Logo from "@/components/Logo";
-import Input from "@/components/Input";
-import Button from "@/components/Button";
 import { useState } from 'react';
+import { Disc3, Mail, Lock } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/Input';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
 import { login } from './queries';
 
-export default function LoginPage() {
 
+interface AuthPageProps {
+  mode: 'login' | 'signup';
+  onNavigate: (page: string) => void;
+}
+
+export default function AuthPage({ mode, onNavigate }: AuthPageProps) {
   const supabase = createClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,50 +37,80 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-start justify-center px-6 auth-top">
-      <div className="w-full auth-wrapper">
+    <div className="min-h-screen bg-black flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <Logo className="mx-auto mb-6 animate-spin-slow" />
-          <h1 className="text-3xl font-extrabold">Welcome Back</h1>
-          <p className="text-(--muted) mt-2">Log in to continue your music journey</p>
-        </div>
-
-        <div className="auth-card">
-          <div className="form-panel">
-            <form className="space-y-0" method="post" onSubmit={handleSubmit}>
-              <label className='text-red-500 text-sm mt-2' hidden={!error} >Invalid email or password.</label> { /** @todo logan */}
-
-              <div className="form-row">
-                <label className="input-label">Email</label>
-                <Input className="w-full" name="email" placeholder="your@email.com" type="email" onChange={(e) => setEmail(e.target.value)} />
-              </div>
-
-              <div className="form-row">
-                <label className="input-label">Password</label>
-                <Input className="w-full" name="password" placeholder="••••••••" type="password" onChange={(e) => setPassword(e.target.value)} />
-              </div>
-
-              <div className="flex items-center justify-between mb-6">
-                <div />
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-(--brand) forgot-link"
-                >
-                  Forgot password?
-                </Link>
-              </div>
-
-              <div>
-                <Button type="submit" variant="primary" className="w-full mt-6">Log In</Button>
-              </div>
-            </form>
+          <div className="flex justify-center mb-4">
+            <Disc3 className="w-12 h-12 text-[#1DB954]" />
           </div>
+          <h1 className="text-3xl font-bold text-white mb-2">
+            Welcome Back
+          </h1>
+          <p className="text-gray-400">
+            Log in to continue your music journey
+          </p>
         </div>
 
-        <p className="text-center text-sm text-(--muted) mt-6">
-          Don't have an account? <Link href="/signup" className="text-(--brand)">Sign Up</Link>
-        </p>
+        <div className="bg-[#181818] rounded-lg p-6 mb-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="text-sm text-gray-400 mb-2 block">Email</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="your@email.com"
+                  className="bg-[#282828] border-gray-700 text-white pl-10 py-6 rounded-lg focus:border-[#1DB954] focus:ring-[#1DB954]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm text-gray-400 mb-2 block">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                <Input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="bg-[#282828] border-gray-700 text-white pl-10 py-6 rounded-lg focus:border-[#1DB954] focus:ring-[#1DB954]"
+                />
+              </div>
+              <label className='text-red-500 text-sm mt-2' hidden={!error} >Invalid email or password.</label>
+            </div>
+
+
+            <div className="text-right">
+              <button type="button" className="text-sm text-[#1DB954] hover:underline">
+                Forgot password?
+              </button>
+            </div>
+
+
+            <Button
+              type="submit"
+              className="w-full bg-[#1DB954] hover:bg-[#1ed760] text-white py-6 rounded-full font-medium text-lg transition-all hover:scale-105"
+            >
+              Log In
+            </Button>
+          </form>
+        </div>
+
+        <div className="text-center mt-6">
+          <p className="text-gray-400 text-sm">
+            {"Don't have an account? "}
+            <button
+              onClick={() => router.push('/signup')}
+              className="text-[#1DB954] hover:underline font-medium"
+            >
+              Sign up
+            </button>
+          </p>
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

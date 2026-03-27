@@ -1,46 +1,50 @@
-import Link from "next/link";
-import Logo from "@/components/Logo";
+'use client'
+import { Disc3 } from 'lucide-react';
+import { Button } from '../components/ui/button';
+import { useRouter } from 'next/navigation';
 
-export default function Home() {
+export default function LandingPage() {
+
+  const router = useRouter();
+
   return (
-    <main className="min-h-screen flex items-center justify-center relative px-6">
-      {/** background circles */}
-      <div aria-hidden className="absolute inset-0 -z-10 overflow-hidden">
-        <svg className="w-[140vmax] h-[1400] opacity-10 translate-x-20 translate-y-8" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="40" cy="50" r="48" stroke="#0a441d" strokeWidth="0.6" fill="none" />
-          <circle cx="62" cy="32" r="36" stroke="#0a441d" strokeWidth="0.6" fill="none" />
-          <circle cx="92" cy="66" r="24" stroke="#0a441d" strokeWidth="0.6" fill="none" />
-        </svg>
+    <div className="min-h-screen bg-black flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background decorative elements */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full border-2 border-[#1DB954]"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 rounded-full border-2 border-[#1DB954]"></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 width: 600px height: 600px rounded-full border border-[#1DB954]"></div>
       </div>
 
-      <div className="text-center max-w-3xl mx-auto">
+      <div className="relative z-10 max-w-lg w-full text-center">
         <div className="flex justify-center mb-6">
-          <Logo className="animate-spin-slow" />
+          <Disc3 className="w-20 h-20 text-[#1DB954] animate-spin" style={{ animationDuration: '8s' }} />
         </div>
 
-        <h1 className="hero-title">
-          <span style={{ color: "white" }}>Sound</span><span style={{ color: "var(--brand)" }}>Circle</span>
+        <h1 className="text-6xl md:text-7xl font-bold text-white mb-4">
+          Sound<span className="text-[#1DB954]">Circle</span>
         </h1>
 
-        <p className="hero-sub">
+        <p className="text-gray-400 text-lg md:text-xl mb-8 max-w-md mx-auto">
           Share your music journey. Review albums. Connect with listeners worldwide.
         </p>
 
-        <div className="hero-cta">
-          <Link href="/signup" className="btn-primary inline-block">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Button
+            onClick={() => router.push('/signup')}
+            className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-8 py-6 text-lg rounded-full font-medium transition-all hover:scale-105"
+          >
             Sign Up
-          </Link>
-
-          <Link href="/login" className="btn-ghost inline-block">
+          </Button>
+          <Button
+            onClick={() => router.push('/login')}
+            variant="outline"
+            className="border-2 border-[#1DB954] text-[#1DB954] hover:bg-[#1DB954] hover:text-white px-8 py-6 text-lg rounded-full font-medium transition-all"
+          >
             Log In
-          </Link>
+          </Button>
         </div>
-
-        <div className="hero-hr" />
-
-        <p className="preview-text">Preview the experience</p>
-        <a href="#" className="explore-link">Explore Demo →</a>
       </div>
-    </main>
+    </div>
   );
 }
