@@ -36,7 +36,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
                         userId={userId}
                     />
                 </Suspense>
-                <ProfileFooter />
+                <ProfileFooter username={username} />
             </div>
         </div>
     )
