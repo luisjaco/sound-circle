@@ -1,91 +1,172 @@
 'use client'
 
+import React, { useState, useEffect } from 'react';
 import { ImageWithFallback } from '@/components/img/ImageWithFallback';
 import { VinylRating } from '@/components/vinyl-rating';
+import { Music, Disc3, Loader2 } from 'lucide-react';
+import { UnifiedReview } from '@/lib/types/review';
 import { useRouter } from 'next/navigation';
 
-export default function ProfileFooter() {
+type ProfileReviewFilter = 'all' | 'songs' | 'albums';
+
+export default function ProfileFooter({ username }: { username: string }) {
     const router = useRouter();
-    const userReviews = [
-        {
-            id: 1,
-            albumArt:
-                "https://images.unsplash.com/photo-1616663395403-2e0052b8e595?w=400",
-            albumTitle: "Midnight Echoes",
-            artistName: "The Velvet Underground",
-            rating: 5,
-            reviewText:
-                "An absolute masterpiece. The production is flawless and every track tells a story.",
-            likes: 127,
-            comments: 23,
-        },
-        {
-            id: 2,
-            albumArt:
-                "https://images.unsplash.com/photo-1703115015343-81b498a8c080?w=400",
-            albumTitle: "Neon Nights",
-            artistName: "Synthwave Society",
-            rating: 5,
-            reviewText: "Pure 80s nostalgia done right. The synth work is incredible.",
-            likes: 203,
-            comments: 41,
-        },
-        {
-            id: 3,
-            albumArt:
-                "https://images.unsplash.com/photo-1681148773098-1460911e25a4?w=400",
-            albumTitle: "Jazz After Dark",
-            artistName: "Miles Ahead Quartet",
-            rating: 4,
-            reviewText:
-                "Stunning jazz fusion that pushes boundaries while respecting tradition.",
-            likes: 156,
-            comments: 28,
-        },
-        {
-            id: 4,
-            albumArt:
-                "https://images.unsplash.com/photo-1761814684971-fa0e7fd606e2?w=400",
-            albumTitle: "Summer Vibes",
-            artistName: "Coastal Dreams",
-            rating: 3,
-            reviewText:
-                "Pleasant but forgettable. Good background music for summer parties.",
-            likes: 45,
-            comments: 12,
-        },
-    ];
+    const [reviews, setReviews] = useState<UnifiedReview[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filter, setFilter] = useState<ProfileReviewFilter>('all');
+
+    useEffect(() => {
+        async function fetchReviews() {
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                params.set('username', username);
+                if (filter === 'songs') params.set('type', 'songs');
+                if (filter === 'albums') params.set('type', 'albums');
+
+                const res = await fetch(`/api/supabase/reviews?${params.toString()}`);
+                if (!res.ok) throw new Error('Failed to fetch reviews');
+
+                const data: UnifiedReview[] = await res.json();
+                setReviews(data);
+            } catch (err) {
+                console.error('Error fetching profile reviews:', err);
+                setReviews([]);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchReviews();
+    }, [username, filter]);
 
     return (
         <div className="py-6">
-            <h3 className="text-white font-bold mb-4">My Reviews</h3>
-            <div className="grid gap-3">
-                {userReviews.map((review) => (
-                    <div
-                        key={review.id}
-                        className="bg-[#181818] rounded-lg p-4 hover:bg-[#282828] transition-colors cursor-pointer"
-                        onClick={() => router.push("/comments")}
-                    >
-                        <div className="flex gap-4">
-                            <ImageWithFallback
-                                src={review.albumArt}
-                                alt={review.albumTitle}
-                                className="w-16 h-16 rounded-md object-cover shrink-0"
-                            />
-                            <div className="flex-1 min-w-0">
-                                <h4 className="text-white font-medium truncate mb-1">{review.albumTitle}</h4>
-                                <p className="text-gray-400 text-sm mb-2">{review.artistName}</p>
-                                <VinylRating rating={review.rating} size="sm" />
-                                <p className="text-gray-300 text-sm mt-2 line-clamp-2">{review.reviewText}</p>
-                                <div className="flex gap-4 mt-2 text-gray-500 text-xs">
-                                    <span>{review.likes} likes</span>
-                                    <span>{review.comments} comments</span>
+            {/* Header / Filter */}
+            <div className="flex items-center justify-between mb-4">
+                <h3 className="text-white font-bold text-lg">Reviews</h3>
+                <div className="flex gap-1 bg-[#111] rounded-lg p-1 border border-gray-800/50">
+                    {([
+                        { key: 'all' as const, label: 'All' },
+                        { key: 'songs' as const, label: 'Songs', icon: Music },
+                        { key: 'albums' as const, label: 'Albums', icon: Disc3 },
+                    ]).map(({ key, label, icon: Icon }) => (
+                        <button
+                            key={key}
+                            onClick={() => setFilter(key)}
+                            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 ${
+                                filter === key
+                                    ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                        >
+                            {Icon && <Icon className="w-3 h-3" />}
+                            {label}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            {/* Loading */}
+            {loading && (
+                <div className="flex items-center justify-center py-12">
+                    <Loader2 className="w-6 h-6 text-[#1DB954] animate-spin" />
+                </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && reviews.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12 gap-2">
+                    <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
+                        <Music className="w-6 h-6 text-gray-600" />
+                    </div>
+                    <p className="text-gray-500 text-sm">No reviews yet</p>
+                </div>
+            )}
+
+            {/* Reviews Grid */}
+            {!loading && reviews.length > 0 && (
+                <div className="grid gap-3">
+                    {reviews.map((review) => {
+                        const itemName = review.review_type === 'song'
+                            ? review.song?.name ?? 'Unknown Song'
+                            : review.album?.name ?? 'Unknown Album';
+
+                        const artistName = review.review_type === 'song'
+                            ? review.song?.artists?.name ?? 'Unknown Artist'
+                            : review.album?.artists?.name ?? 'Unknown Artist';
+
+                        return (
+                            <div
+                                key={`${review.review_type}-${review.id}`}
+                                className="bg-[#181818] rounded-lg p-4 hover:bg-[#282828] transition-colors cursor-pointer"
+                            >
+                                <div className="flex gap-4">
+                                    {/* Art output or placeholder */}
+                                    {review.review_type === 'song' && review.song?.cover_art_url ? (
+                                        <ImageWithFallback
+                                            src={review.song.cover_art_url}
+                                            alt={itemName}
+                                            className="w-16 h-16 rounded-lg object-cover shrink-0 border border-gray-700/50"
+                                        />
+                                    ) : review.review_type === 'album' && review.album?.cover_art_url ? (
+                                        <ImageWithFallback
+                                            src={review.album.cover_art_url}
+                                            alt={itemName}
+                                            className="w-16 h-16 rounded-lg object-cover shrink-0 border border-gray-700/50"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-gray-700/50">
+                                            {review.review_type === 'song' ? (
+                                                <Music className="w-6 h-6 text-gray-500" />
+                                            ) : (
+                                                <Disc3 className="w-6 h-6 text-gray-500" />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h4 className="text-white font-medium truncate">
+                                                {itemName}
+                                            </h4>
+                                            {/* Type badge */}
+                                            <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                                                review.review_type === 'song'
+                                                    ? 'bg-purple-500/15 text-purple-400'
+                                                    : 'bg-blue-500/15 text-blue-400'
+                                            }`}>
+                                                {review.review_type === 'song' ? 'Song' : 'Album'}
+                                            </span>
+                                            {!review.is_public && (
+                                                <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
+                                                    Private
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <p className="text-gray-400 text-sm mb-2">{artistName}</p>
+
+                                        {review.rating != null && (
+                                            <VinylRating rating={review.rating} size="sm" />
+                                        )}
+
+                                        {review.review && (
+                                            <p className="text-gray-300 text-sm mt-2 line-clamp-2">
+                                                {review.review}
+                                            </p>
+                                        )}
+
+                                        {review.edited_at && (
+                                            <p className="text-gray-600 text-[10px] mt-1 italic">edited</p>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
         </div>
     )
 }
