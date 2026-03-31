@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { TrendingUp, Music, Disc3, Loader2 } from "lucide-react";
 import { UnifiedReview } from "@/lib/types/review";
-import Review from '@/components/Review';
+import Review from "@/components/Review";
 
 type FeedFilter = "all" | "songs" | "albums";
 
@@ -50,19 +50,18 @@ export default function FeedPage() {
         <div className="flex gap-1 mb-6 bg-[#111] rounded-lg p-1 border border-gray-800/50">
           {(
             [
-              { key: "all" as FeedFilter, label: "All Reviews", icon: undefined },
-              { key: "songs" as FeedFilter, label: "Songs", icon: Music },
-              { key: "albums" as FeedFilter, label: "Albums", icon: Disc3 },
-            ]
+              { key: "all", label: "All Reviews", icon: undefined },
+              { key: "songs", label: "Songs", icon: Music },
+              { key: "albums", label: "Albums", icon: Disc3 },
+            ] as const
           ).map(({ key, label, icon: Icon }) => (
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-sm font-medium transition-all duration-200 ${
-                filter === key
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-sm font-medium transition-all duration-200 ${filter === key
                   ? "bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
-              }`}
+                }`}
             >
               {Icon && <Icon className="w-4 h-4" />}
               {label}
@@ -108,7 +107,7 @@ export default function FeedPage() {
         {!loading && !error && reviews.length > 0 && (
           <div className="space-y-4">
             {reviews.map((review) => (
-              <Review 
+              <Review
                 key={`${review.review_type}-${review.id}`}
                 review={review}
                 showUser={true}

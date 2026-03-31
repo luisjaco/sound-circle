@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { ImageWithFallback } from '@/components/img/ImageWithFallback';
+import { VinylRating } from '@/components/vinyl-rating';
 import { Music, Disc3, Loader2 } from 'lucide-react';
 import { UnifiedReview } from '@/lib/types/review';
 import { useRouter } from 'next/navigation';
@@ -53,10 +55,11 @@ export default function ProfileFooter({ username }: { username: string }) {
                         <button
                             key={key}
                             onClick={() => setFilter(key)}
-                            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 ${filter === key
+                            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 ${
+                                filter === key
                                     ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                }`}
+                            }`}
                         >
                             {Icon && <Icon className="w-3 h-3" />}
                             {label}
@@ -85,13 +88,84 @@ export default function ProfileFooter({ username }: { username: string }) {
             {/* Reviews Grid */}
             {!loading && reviews.length > 0 && (
                 <div className="grid gap-3">
-                    {reviews.map((review) => (
-                        <Review
-                            key={`${review.review_type}-${review.id}`}
-                            review={review}
-                            showUser={false}
-                        />
-                    ))}
+                    {reviews.map((review) => {
+                        const itemName = review.review_type === 'song'
+                            ? review.song?.name ?? 'Unknown Song'
+                            : review.album?.name ?? 'Unknown Album';
+
+                        const artistName = review.review_type === 'song'
+                            ? review.song?.artists?.name ?? 'Unknown Artist'
+                            : review.album?.artists?.name ?? 'Unknown Artist';
+
+                        return (
+                            <div
+                                key={`${review.review_type}-${review.id}`}
+                                className="bg-[#181818] rounded-lg p-4 hover:bg-[#282828] transition-colors cursor-pointer"
+                            >
+                                <div className="flex gap-4">
+                                    {/* Art output or placeholder */}
+                                    {review.review_type === 'song' && review.song?.cover_art_url ? (
+                                        <ImageWithFallback
+                                            src={review.song.cover_art_url}
+                                            alt={itemName}
+                                            className="w-16 h-16 rounded-lg object-cover shrink-0 border border-gray-700/50"
+                                        />
+                                    ) : review.review_type === 'album' && review.album?.cover_art_url ? (
+                                        <ImageWithFallback
+                                            src={review.album.cover_art_url}
+                                            alt={itemName}
+                                            className="w-16 h-16 rounded-lg object-cover shrink-0 border border-gray-700/50"
+                                        />
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-gray-700/50">
+                                            {review.review_type === 'song' ? (
+                                                <Music className="w-6 h-6 text-gray-500" />
+                                            ) : (
+                                                <Disc3 className="w-6 h-6 text-gray-500" />
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <h4 className="text-white font-medium truncate">
+                                                {itemName}
+                                            </h4>
+                                            {/* Type badge */}
+                                            <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
+                                                review.review_type === 'song'
+                                                    ? 'bg-purple-500/15 text-purple-400'
+                                                    : 'bg-blue-500/15 text-blue-400'
+                                            }`}>
+                                                {review.review_type === 'song' ? 'Song' : 'Album'}
+                                            </span>
+                                            {!review.is_public && (
+                                                <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
+                                                    Private
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        <p className="text-gray-400 text-sm mb-2">{artistName}</p>
+
+                                        {review.rating != null && (
+                                            <VinylRating rating={review.rating} size="sm" />
+                                        )}
+
+                                        {review.review && (
+                                            <p className="text-gray-300 text-sm mt-2 line-clamp-2">
+                                                {review.review}
+                                            </p>
+                                        )}
+
+                                        {review.edited_at && (
+                                            <p className="text-gray-600 text-[10px] mt-1 italic">edited</p>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             )}
         </div>
