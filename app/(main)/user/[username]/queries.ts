@@ -144,9 +144,7 @@ export async function getArtistComponentData(artists: SBArtist[]) {
     let res = ((artists.length === 1) ? await getArtist(spotifyIds[0]) : await getArtists(spotifyIds));
     if (!res) return [];
 
-    console.log(res);
     const artistData = res.artists;
-    console.log(artistData)
     // spotify_id : image url
     const validIds: Record<string, string> = { '': '' };
     for (const artist of artistData) {

@@ -59,7 +59,7 @@ export default function Header() {
             </button>
             <button
                 onClick={() => router.push(`/user/${username}`)}
-                className="flex flex-col items-center gap-1 text-gray-400 hover:text-[#1DB954] transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-1 text-gray-400 hover:text-[#1DB954] transition-colors cursor-pointer w-20"
             >
                 <ProfilePicture
                     src={profilePictureUrl}
