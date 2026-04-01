@@ -1,8 +1,6 @@
-"use client"
+"use server"
 
 import { Music } from 'lucide-react';
-import { Button } from "@/components/ui/button";
-import { useRouter } from 'next/navigation';
 import ProfilePicture from '@/components/img/ProfilePicture';
 
 type Props = {
@@ -19,7 +17,7 @@ type Props = {
     following: number
 }
 
-export default function ProfileHeader({
+export default async function ProfileHeader({
     userId,
     username,
     isOwner,
@@ -32,8 +30,6 @@ export default function ProfileHeader({
     followers,
     following,
 }: Props) {
-    const router = useRouter();
-
 
     return (
         <div className="py-6 border-b border-gray-800">
@@ -95,19 +91,7 @@ export default function ProfileHeader({
                         <Music className="w-8 h-8 text-[#FA2D48]" />
                     </div>
                 </div>
-
-
             </div>
-            {isOwner && (
-                <Button
-                    variant="outline"
-                    className="w-full border-gray-700 bg-transparent hover:bg-[#181818] text-white rounded-full cursor-pointer"
-                    onClick={() => router.push("/edit-profile")}
-                >
-                    Edit Profile
-                </Button>
-            )}
-
         </div>
     )
 }
