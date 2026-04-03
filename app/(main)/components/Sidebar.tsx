@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Disc3, ListVideo, LogOut, Music, Music2, SquarePen } from 'lucide-react';
+import { Disc3, Heart, ListVideo, LogOut, SettingsIcon, } from 'lucide-react';
 import ProfilePicture from '@/components/img/ProfilePicture';
 import { createClient } from '@/lib/supabase/browser';
 
@@ -59,27 +59,18 @@ export default function SideBar({
 
             <div
                 className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
-                onClick={() => push(`/user/${username}/edit`)}
+                onClick={() => push(`/settings`)}
             >
-                <SquarePen className="w-11 h-11" />
-                <p>Edit Profile</p>
+                <SettingsIcon className="w-11 h-11" />
+                <p>Settings</p>
             </div>
 
             <div
                 className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
-                onClick={() => push(`/user/${username}/services`)}
+                onClick={() => push(`/user/${username}/favorites`)}
             >
-
-                <Music className="w-11 h-11" />
-                <p>Connected accounts</p>
-            </div>
-
-            <div
-                className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
-                onClick={() => push(`/user/${username}/lists`)}
-            >
-                <ListVideo className="w-11 h-11" />
-                <p>Lists</p>
+                <Heart className="w-11 h-11" />
+                <p>Favorites</p>
             </div>
 
             <div
@@ -89,8 +80,14 @@ export default function SideBar({
                 <Disc3 className="w-11 h-11" />
                 <p>Reviews</p>
             </div>
-
-
+            
+            <div
+                className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
+                onClick={() => push(`/user/${username}/lists`)}
+            >
+                <ListVideo className="w-11 h-11" />
+                <p>Lists</p>
+            </div>
         </div>
     )
 
@@ -117,8 +114,8 @@ export default function SideBar({
                         <p
                             hidden={!logoutError}
                             className='text-[#cd3434] text-sm mb-2'>
-                                There was an error when attempting to log out. Please try again.
-                            </p>
+                            There was an error when attempting to log out. Please try again.
+                        </p>
                         <div
                             className="flex border-t border-gray-700 w-full gap-8 text-lg items-center pt-4 pb-5 hover:text-[#cd3434] transition-colors cursor-pointer"
                             onClick={logout}
