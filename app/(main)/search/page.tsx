@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
 import SearchResultCard, { SearchResultItem } from './components/SearchResultCard';
+import { useSearchParams } from 'next/navigation';
 
 interface SearchResponse {
     query: string;
@@ -13,7 +14,9 @@ interface SearchResponse {
 }
 
 export default function SearchPage() {
-    const [query, setQuery] = useState('');
+    const searchParams = useSearchParams();
+
+    const [query, setQuery] = useState(searchParams.get('query') || '');
     const [results, setResults] = useState<SearchResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
@@ -63,11 +66,11 @@ export default function SearchPage() {
         (results?.songs.length || 0);
 
     return (
-        <div className="max-w-2xl mx-auto px-4 py-6">
+        <div className="flex flex-col w-2xl mx-auto px-4 py-6 items-center">
             {/* Search Bar */}
             <div className="relative mb-6">
-                <div className="flex items-center bg-[#181818] border border-gray-800 rounded-2xl px-4 py-3 focus-within:border-[#1DB954] transition-colors">
-                    <Search className="w-5 h-5 text-gray-500 mr-3 flex-shrink-0" />
+                <div className="flex bg-[#181818] border border-gray-800 rounded-2xl px-4 py-3 focus-within:border-[#1DB954] w-200 h-full transition-colors">
+                    <Search className="w-8 h-8 text-gray-500 mr-3 shrink-0" />
                     <input
                         ref={inputRef}
                         type="text"
@@ -152,7 +155,7 @@ function ResultSection({
     items: SearchResultItem[];
 }) {
     return (
-        <div>
+        <div className='w-2xl'>
             <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">
                 {title}
             </h2>

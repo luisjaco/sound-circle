@@ -54,7 +54,7 @@ export default function SearchResultCard({ item }: { item: SearchResultItem }) {
         <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1a1a1a] transition-colors cursor-pointer group">
             {/* Image / Fallback icon */}
             <div
-                className="flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center"
+                className="shrink-0 w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center"
                 style={{ background: '#181818' }}
             >
                 {hasImage ? (

@@ -102,7 +102,7 @@ export default function SideBar({
 
             <aside
                 className={`
-          fixed top-0 right-0 h-full w-sm bg-[#0a0a0a]
+          fixed top-0 right-0 h-full w-xs bg-[#0a0a0a]
           transform transition-transform duration-300 z-50
           ${sidebarOpen ? "translate-x-0" : "translate-x-full"}
         `}

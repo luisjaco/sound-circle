@@ -1,9 +1,9 @@
 'use client'
 
 import ProfilePicture from "@/components/img/ProfilePicture";
-
-import { Home, Menu, Search } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useState } from 'react';
+import { Home, Menu, Search, X } from "lucide-react";
+import { useRouter, usePathname } from "next/navigation";
 
 import Logo from "@/components/Logo";
 
@@ -20,7 +20,8 @@ export default function Header({
 }: HeaderProps) {
 
     const router = useRouter();
-
+    const pathname = usePathname();
+    const [query, setQuery] = useState('');
 
     const soundCircleLogo = (
         <div className="max-w-2xl  px-4 py-4 inline-flex items-center">
@@ -40,15 +41,44 @@ export default function Header({
 
             {soundCircleLogo}
 
-            <div className="flex items-center bg-[#181818] border border-gray-800 rounded-2xl px-4 py-3 focus-within:border-[#1DB954] transition-colors w-200 h-full">
-                <Search className="w-8 h-8 text-gray-500 mr-3 shrink-0" />
-                <input
-                    type="text"
-                    placeholder="Search users, artists, albums, songs..."
-                    className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none text-base"
-                    id="search-input"
-                />
-            </div>
+            {
+                (pathname !== '/search') && (
+                    <form
+                        className="flex items-center bg-[#181818] border border-gray-800 rounded-2xl px-4 py-3 focus-within:border-[#1DB954] transition-colors w-3xl h-full"
+                        onSubmit={(e) => {
+                            e.preventDefault()
+
+                            if (!query.trim()) return;
+
+                            router.push(`/search?query=${encodeURIComponent(query)}`)
+                            setQuery('');
+                        }}
+                    >
+                        <Search
+                            className="w-8 h-8 text-gray-500 mr-3 shrink-0 hover:text-[#1DB954] transition-colors cursor-pointer"
+                            onClick={() => router.push('/search')}
+                        />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search users, artists, albums, songs..."
+                            className="flex-1 bg-transparent text-white placeholder-gray-500 outline-none text-base"
+                            id="search-input"
+                        />
+                        {query && (
+                            <button
+                                type='button'
+                                onClick={() => setQuery('')}
+                                className="text-gray-500 hover:text-white transition-colors ml-2"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        )}
+                    </form>
+                )
+            }
+
 
             <div className='flex gap-12 mx-5'>
                 <button

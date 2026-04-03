@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react';
-import { Disc3, Mail, Lock } from 'lucide-react';
+import { Disc3, Mail, Lock, } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/Input';
 import { useRouter } from 'next/navigation';
