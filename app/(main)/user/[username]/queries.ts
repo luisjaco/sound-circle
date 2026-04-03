@@ -41,6 +41,15 @@ type SBSong = {
     }
 }
 
+type SBGenre = {
+    user_id: string,
+    genre_id: string,
+    genres: {
+        id: string,
+        genre: string
+    }
+}
+
 export async function getProfile(supabase: SupabaseClient, username: string) {
     let isOwner = false;
 
@@ -55,14 +64,41 @@ export async function getProfile(supabase: SupabaseClient, username: string) {
         notFound();
     }
 
+    const profileInfo = { username, ...profile }
+    return profileInfo
+}
+
+export async function getClient(supabase: SupabaseClient) {
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
-        isOwner = user?.id === profile.id;
+        return user.id
     }
 
-    const profileInfo = { username, isOwner, ...profile };
+    console.error(`error when grabbing client data`);
+    notFound();
+}
 
-    return { userId: profile.id, profileInfo: profileInfo };
+export async function getFavoriteGenres(supabase: SupabaseClient, userId: string) {
+    const { data, error } = await supabase
+        .from('user_favorite_genres')
+        .select(`
+            user_id,
+            genre_id,
+            genres (
+                id,
+                genre
+        )
+        `)
+        .eq('user_id', userId)
+        .limit(3) as {data: SBGenre[] | null, error: object};
+
+    if (error || !data) {
+        console.error(`error when grabbing userId ${userId}'s favorite genres`);
+        console.error(error);
+        notFound();
+    }
+    
+    return data;
 }
 
 export async function getProfileStatistics(supabase: SupabaseClient, userId: string) {
@@ -100,7 +136,13 @@ export async function getProfileStatistics(supabase: SupabaseClient, userId: str
         const sR = songReviews.count || 0;
         const aR = albumReviews.count || 0;
         const reviewCount = sR + aR;
-        return [reviewCount, followers.count, following.count];
+
+        const stats = {
+            reviews: reviewCount,
+            followers: followers.count,
+            following: following.count
+        }
+        return stats;
     }
 }
 

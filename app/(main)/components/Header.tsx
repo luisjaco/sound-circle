@@ -39,7 +39,13 @@ export default function Header({
     return (
         <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10 flex justify-between items-center py-1">
 
-            {soundCircleLogo}
+            <div
+                className="cursor-pointer"
+                onClick={() => router.push('/feed')}    
+            >
+                {soundCircleLogo}
+            </div>
+            
 
             {
                 (pathname !== '/search') && (
