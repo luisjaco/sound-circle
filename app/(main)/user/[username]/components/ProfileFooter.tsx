@@ -77,9 +77,9 @@ export default function ProfileFooter({ username }: { username: string }) {
 
             {/* Empty State */}
             {!loading && reviews.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12 gap-2">
-                    <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
-                        <Music className="w-6 h-6 text-gray-600" />
+                <div className="flex flex-col items-center justify-center py-12">
+                    <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center mb-2">
+                        <Music className="w-10 h-10 text-gray-600" />
                     </div>
                     <p className="text-gray-500 text-sm">No reviews yet</p>
                 </div>
@@ -117,7 +117,7 @@ export default function ProfileFooter({ username }: { username: string }) {
                                             className="w-16 h-16 rounded-lg object-cover shrink-0 border border-gray-700/50"
                                         />
                                     ) : (
-                                        <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-gray-700/50">
+                                        <div className="w-16 h-16 rounded-lg bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-gray-700/50">
                                             {review.review_type === 'song' ? (
                                                 <Music className="w-6 h-6 text-gray-500" />
                                             ) : (

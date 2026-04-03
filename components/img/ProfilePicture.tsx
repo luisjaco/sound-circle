@@ -33,7 +33,7 @@ export default function ProfilePicture({
                             >
                             <User 
                                 className="text-gray-600"
-                                style={{ width: trueSize, height: trueSize}}
+                                style={{ width: trueSize * .8, height: trueSize * .8}}
                             />
                         </div>
                     )

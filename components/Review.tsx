@@ -45,7 +45,7 @@ export default function FeedReviewCard({
     const timeAgo = getTimeAgo(effectiveDate);
 
     const userHeader = (
-        <div className="flex items-center gap-3 mb-4">
+        <div className="flex items-center gap-3 mb-4 z-2">
                         <Link href={`/user/${review.user.username}`}>
                             {review.user.profile_picture_url ? (
                                 <ImageWithFallback
@@ -133,7 +133,7 @@ export default function FeedReviewCard({
 
     return (
 
-        <Link href={`/review/${review.id}`} className='flex border border-gray-800/50 bg-[#181818] rounded-xl p-5 hover:bg-[#1f1f1f] transition-all duration-200 '>
+        <Link href={`/review/${review.id}`} className='flex border border-gray-800/50 bg-[#181818] rounded-xl p-5 hover:bg-[#1f1f1f] transition-all duration-200 z-1'>
             <div>
 
                 {showUser && (userHeader)}

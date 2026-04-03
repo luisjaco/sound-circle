@@ -1,27 +1,64 @@
+'use client'
 type Props = {
     children: React.ReactNode;
 }
 
-import Logo from "@/components/Logo";
 import Header from './components/Header';
+import SideBar from "./components/Sidebar";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/browser";
+import { notFound } from 'next/navigation';
 
 export default function MainLayout({ children }: Props) {
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    const supabase = createClient();
+    const [username, setUsername] = useState('');
+    const [profilePictureUrl, setProfilePictureUrl] = useState('');
+
+    useEffect(() => {
+        let isMounted = true;
+
+        const grabCurrentUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+
+            // error should not be possible given user is created, but if it is we will push notFound();
+            if (!user) notFound();
+
+            const { data: profile } = await supabase
+                .from('users')
+                .select('*')
+                .eq('id', user?.id)
+                .single();
+
+            if (!profile) notFound();
+
+            setUsername(profile.username);
+            setProfilePictureUrl(profile.profile_picture_url);
+        }
+
+        grabCurrentUser();
+
+        return () => {
+            isMounted = false;
+        }
+    }, []);
+
+
+
     return (
         <div className="min-h-screen bg-black pb-20">
-            {/* Header */}
-            <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10 flex justify-between">
-                <div className="max-w-2xl  px-4 py-4 inline-flex items-center">
-                    <h1 className="text-3xl font-bold text-white mr-1">
-                        Sound<span className="text-[#1DB954]">Circle</span>
-                    </h1>
-                    <Logo 
-                        size={40}
-                    />
-                </div>
-
-                <Header />               
-            </header>
-
+            <Header
+                setSidebarOpen={setSidebarOpen}
+                username={username}
+                profilePictureUrl={profilePictureUrl}
+            />
+            <SideBar
+                sidebarOpen={sidebarOpen}
+                setSidebarOpen={setSidebarOpen}
+                username={username}
+                profilePictureUrl={profilePictureUrl}
+            />
             {children}
         </div>
     );

@@ -4,6 +4,7 @@ import Artist from '@/components/Artist';
 import Album from '@/components/Album';
 import Song from '@/components/Song';
 import { createClient } from '@/lib/supabase/server';
+import { Disc2, Music2, SquareUserRound } from 'lucide-react'
 import {
     getTopArtists,
     getArtistComponentData,
@@ -123,13 +124,21 @@ export default async function Favorites({
             </div>
 
             <div>
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 h-60 w-full">
                     {
-                        populateArtists().map((x, key) => {
-                            return (
-                                <div key={key}>{x}</div>
-                            )
-                        })
+                        (favoriteArtists.length > 0) ? (
+                            populateArtists().map((x, key) => {
+                                return (
+                                    <div key={key}>{x}</div>
+                                )
+                            })) : (
+                            <div className='flex flex-col h-60 w-full justify-center items-center'>
+                                <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center mb-2">
+                                    <SquareUserRound className="w-10 h-10 text-gray-600" />
+                                </div>
+                                <p className='text-gray-600'>No favorite artists yet</p>
+                            </div>
+                        )
                     }
                 </div>
             </div>
@@ -145,11 +154,20 @@ export default async function Favorites({
             <div>
                 <div className="flex flex-col gap-3">
                     {
-                        populateAlbums().map((x, key) => {
-                            return (
-                                <div key={key}>{x}</div>
+                        (favoriteAlbums.length > 0) ? (
+                            populateAlbums().map((x, key) => {
+                                return (
+                                    <div key={key}>{x}</div>
+                                )
+                            })) :
+                            (
+                                <div className='flex flex-col h-60 w-full justify-center items-center'>
+                                    <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center mb-2">
+                                        <Disc2 className="w-10 h-10 text-gray-600" />
+                                    </div>
+                                    <p className='text-gray-600'>No favorite albums yet</p>
+                                </div>
                             )
-                        })
                     }
                 </div>
             </div>
@@ -165,11 +183,19 @@ export default async function Favorites({
             <div>
                 <div className="flex flex-col gap-3">
                     {
-                        populateSongs().map((x, key) => {
-                            return (
-                                <div key={key}>{x}</div>
-                            )
-                        })
+                        (favoriteSongs.length > 0) ? (
+                            populateSongs().map((x, key) => {
+                                return (
+                                    <div key={key}>{x}</div>
+                                )
+                            })) : (
+                            <div className='flex flex-col h-60 w-full justify-center items-center'>
+                                <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center mb-2">
+                                    <Music2 className="w-10 h-10 text-gray-600" />
+                                </div>
+                                <p className='text-gray-600'>No favorite songs yet</p>
+                            </div>
+                        )
                     }
                 </div>
             </div>
