@@ -74,7 +74,7 @@ export default function AuthPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="flex justify-center mb-4">
-            <Disc3 className="w-12 h-12 text-[#1DB954]" />
+            <Disc3 className="w-20 h-20 text-[#1DB954] animate-spin [animation-duration:8s]" />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">
             Join SoundCircle

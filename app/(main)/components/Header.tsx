@@ -28,6 +28,7 @@ export default function Header({
                 Sound<span className="text-[#1DB954]">Circle</span>
             </h1>
             <Logo
+                className="animate-spin [animation-duration:16s]"
                 size={40}
             />
         </div>
