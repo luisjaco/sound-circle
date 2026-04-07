@@ -5,7 +5,7 @@ type Props = {
 
 import Header from './components/Header';
 import SideBar from "./components/Sidebar";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import { notFound } from 'next/navigation';
 
@@ -59,7 +59,10 @@ export default function MainLayout({ children }: Props) {
                 username={username}
                 profilePictureUrl={profilePictureUrl}
             />
-            {children}
+            <Suspense>
+                {children}
+            </Suspense>
+            
         </div>
     );
 }

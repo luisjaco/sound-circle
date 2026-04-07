@@ -1,4 +1,4 @@
-'use client';
+'use client'
 
 import { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2 } from 'lucide-react';
@@ -16,7 +16,7 @@ interface SearchResponse {
 export default function SearchPage() {
     const searchParams = useSearchParams();
 
-    const [query, setQuery] = useState(searchParams.get('query') || '');
+    const [query, setQuery] = useState(searchParams?.get('query') || '');
     const [results, setResults] = useState<SearchResponse | null>(null);
     const [loading, setLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
