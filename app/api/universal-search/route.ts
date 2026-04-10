@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import supabase from '@/lib/supabase/admin';
 import { MB_BASE, USER_AGENT } from '@/lib/musicbrainz';
 import { searchSpotifyImages } from '@/lib/spotify/search';
+import { addArtistsToSupabase, findArtistIds } from '@/lib/supabase/table/artists';
 
 /**
  * GET /api/universal-search?q=<query>
@@ -13,6 +14,9 @@ import { searchSpotifyImages } from '@/lib/spotify/search';
  * Priority: Supabase first, then MusicBrainz for artists/albums/songs.
  * If MusicBrainz results are found that don't exist in Supabase,
  * they are inserted into Supabase (artists, albums, songs only – not users).
+ *
+ * Artist inserts use addArtistsToSupabase which resolves Spotify + Apple Music IDs
+ * via MusicBrainz relational data before inserting.
  */
 
 interface SearchResult {
@@ -90,28 +94,47 @@ export async function GET(request: NextRequest) {
             const mbArtists = await searchMBArtists(q, 10);
             const existingMBIds = new Set((sbArtists || []).map((a: any) => a.musicbrainz_id));
 
+            // Collect artists that need to be inserted
+            const artistsToInsert: { id: string; name: string }[] = [];
+
             for (const mbArtist of mbArtists) {
                 if (existingMBIds.has(mbArtist.id)) continue;
-                if (artists.length >= 10) break;
+                if (artists.length + artistsToInsert.length >= 10) break;
 
                 // filter junk entries
                 if (['[unknown]', 'various artists', '[no artist]'].includes(mbArtist.name.toLowerCase())) continue;
 
-                // insert into supabase
-                const { data: inserted } = await supabase
-                    .from('artists')
-                    .upsert({ musicbrainz_id: mbArtist.id, name: mbArtist.name }, { onConflict: 'musicbrainz_id' })
-                    .select('id')
-                    .single();
-
-                artists.push({
-                    type: 'artist',
-                    id: inserted ? String(inserted.id) : mbArtist.id,
-                    name: mbArtist.name,
-                    imageUrl: null,
-                    subtitle: null,
-                });
+                artistsToInsert.push({ id: mbArtist.id, name: mbArtist.name });
                 existingMBIds.add(mbArtist.id);
+            }
+
+            // Use addArtistsToSupabase which fetches Spotify + Apple Music IDs
+            if (artistsToInsert.length > 0) {
+                const insertedArtists = await addArtistsToSupabase(artistsToInsert);
+
+                if (insertedArtists) {
+                    for (const inserted of insertedArtists) {
+                        const original = artistsToInsert.find(a => a.id === inserted.musicbrainz_id);
+                        artists.push({
+                            type: 'artist',
+                            id: String(inserted.id),
+                            name: inserted.name || original?.name || 'Unknown Artist',
+                            imageUrl: null,
+                            subtitle: null,
+                        });
+                    }
+                } else {
+                    // Fallback: still show the artists in results even if insert failed
+                    for (const mbArtist of artistsToInsert) {
+                        artists.push({
+                            type: 'artist',
+                            id: mbArtist.id,
+                            name: mbArtist.name,
+                            imageUrl: null,
+                            subtitle: null,
+                        });
+                    }
+                }
             }
         }
 
@@ -138,12 +161,26 @@ export async function GET(request: NextRequest) {
                 if (existingMBIds.has(mbAlbum.id)) continue;
                 if (albums.length >= 10) break;
 
-                // insert into supabase
-                const { data: inserted } = await supabase
+                // Resolve the artist first so we have artist_id for the album
+                const artistDbId = await resolveArtistId(mbAlbum.artistMbId, mbAlbum.artist);
+
+                const insertData: Record<string, any> = {
+                    musicbrainz_id: mbAlbum.id,
+                    name: mbAlbum.title,
+                };
+                if (artistDbId) {
+                    insertData.artist_id = artistDbId;
+                }
+
+                const { data: inserted, error: albumErr } = await supabase
                     .from('albums')
-                    .upsert({ musicbrainz_id: mbAlbum.id, name: mbAlbum.title }, { onConflict: 'musicbrainz_id' })
+                    .upsert(insertData, { onConflict: 'musicbrainz_id' })
                     .select('id')
                     .single();
+
+                if (albumErr) {
+                    console.error(`Failed to insert album ${mbAlbum.title}:`, albumErr);
+                }
 
                 albums.push({
                     type: 'album',
@@ -179,15 +216,38 @@ export async function GET(request: NextRequest) {
                 if (existingMBIds.has(mbSong.id)) continue;
                 if (songs.length >= 10) break;
 
-                // insert into supabase (needs artist)
-                const { data: inserted } = await supabase
+                // Resolve the artist first so we have artist_id for the song
+                const artistDbId = await resolveArtistId(mbSong.artistMbId, mbSong.artist);
+
+                if (!artistDbId) {
+                    // Still show in results but skip the DB insert (artist_id is required)
+                    songs.push({
+                        type: 'song',
+                        id: mbSong.id,
+                        name: mbSong.title,
+                        imageUrl: null,
+                        subtitle: mbSong.artist || null,
+                    });
+                    existingMBIds.add(mbSong.id);
+                    continue;
+                }
+
+                const insertData: Record<string, any> = {
+                    musicbrainz_id: mbSong.id,
+                    name: mbSong.title,
+                    artist_id: artistDbId,
+                    isrc: '',
+                };
+
+                const { data: inserted, error: songErr } = await supabase
                     .from('songs')
-                    .upsert(
-                        { musicbrainz_id: mbSong.id, name: mbSong.title, isrc: '' },
-                        { onConflict: 'musicbrainz_id' }
-                    )
+                    .upsert(insertData, { onConflict: 'musicbrainz_id' })
                     .select('id')
                     .single();
+
+                if (songErr) {
+                    console.error(`Failed to insert song ${mbSong.title}:`, songErr);
+                }
 
                 songs.push({
                     type: 'song',
@@ -236,7 +296,38 @@ export async function GET(request: NextRequest) {
     }
 }
 
-//MusicBrainz helpers 
+// ==================== Helper: resolve artist MusicBrainz ID to Supabase ID ====================
+
+/**
+ * Given a MusicBrainz artist ID and name, ensures the artist exists in Supabase
+ * (using addArtistsToSupabase which also fetches Spotify + Apple Music IDs)
+ * and returns the Supabase artist.id.
+ */
+async function resolveArtistId(
+    artistMbId: string | null,
+    artistName: string | null
+): Promise<number | null> {
+    if (!artistMbId) return null;
+
+    // Check if artist already exists in Supabase
+    const existing = await findArtistIds([artistMbId]);
+    if (existing && existing.length > 0) {
+        return existing[0].id;
+    }
+
+    // Insert via addArtistsToSupabase (fetches Spotify + Apple Music IDs)
+    const inserted = await addArtistsToSupabase([
+        { id: artistMbId, name: artistName || 'Unknown Artist' }
+    ]);
+
+    if (inserted && inserted.length > 0) {
+        return inserted[0].id;
+    }
+
+    return null;
+}
+
+// ==================== MusicBrainz helpers ====================
 
 async function searchMBArtists(query: string, limit: number) {
     try {
@@ -263,6 +354,7 @@ async function searchMBAlbums(query: string, limit: number) {
             id: rg.id,
             title: rg.title,
             artist: rg['artist-credit']?.map((ac: any) => ac.name).join(', ') || null,
+            artistMbId: rg['artist-credit']?.[0]?.artist?.id || null,
             type: rg['primary-type'],
         }));
     } catch {
@@ -280,6 +372,7 @@ async function searchMBSongs(query: string, limit: number) {
             id: rec.id,
             title: rec.title,
             artist: rec['artist-credit']?.map((ac: any) => ac.name).join(', ') || null,
+            artistMbId: rec['artist-credit']?.[0]?.artist?.id || null,
         }));
     } catch {
         return [];
