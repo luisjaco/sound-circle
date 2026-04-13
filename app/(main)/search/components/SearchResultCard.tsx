@@ -11,6 +11,9 @@ export interface SearchResultItem {
     name: string;
     imageUrl: string | null;
     subtitle: string | null;
+    source: 'supabase' | 'musicbrainz';
+    musicbrainzId?: string;
+    artistMbId?: string | null;
 }
 
 const typeLabels: Record<EntityType, string> = {
@@ -50,8 +53,29 @@ export default function SearchResultCard({ item }: { item: SearchResultItem }) {
         labelText = `${typeLabels[item.type]} · ${item.subtitle}`;
     }
 
+    const handleClick = () => {
+        // If the item is from MusicBrainz (not yet in Supabase), insert it asynchronously
+        if (item.source === 'musicbrainz' && item.musicbrainzId) {
+            // Fire and forget — don't block the user
+            fetch('/api/universal-search/insert', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    type: item.type,
+                    musicbrainzId: item.musicbrainzId,
+                    name: item.name,
+                    artistMbId: item.artistMbId || null,
+                    artistName: item.subtitle || null,
+                }),
+            }).catch((err) => console.error('Insert error:', err));
+        }
+    };
+
     return (
-        <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1a1a1a] transition-colors cursor-pointer group">
+        <div
+            onClick={handleClick}
+            className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#1a1a1a] transition-colors cursor-pointer group"
+        >
             {/* Image / Fallback icon */}
             <div
                 className="shrink-0 w-12 h-12 rounded-lg overflow-hidden flex items-center justify-center"
