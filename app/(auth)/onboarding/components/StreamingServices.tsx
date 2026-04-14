@@ -94,21 +94,17 @@ export default function StreamingServices({
                         onClick={handleSpotifyConnect}
                         disabled={spotifyConnected}
                         className={`w-full flex items-center justify-center gap-3 py-4 rounded-full 
-                            font-medium transition-colors hover:bg-[#1ed760] text-black overflow-hidden
+                            font-medium transition-colors overflow-hidden
                             ${spotifyConnected
-                                ? 'bg-[#1DB954] opacity-50 cursor-not-allowed text-black' 
-                                : 'bg-[#1DB954] hover:bg-[#1ed760] text-black cursor-pointer'
+                                ? 'bg-[#1DB954] opacity-60 cursor-not-allowed' 
+                                : 'bg-[#1DB954] hover:bg-[#1ed760] cursor-pointer'
                             }`}
                     >
-                        {spotifyConnected ? (
-                            <span className="text-sm font-semibold">Connected to Spotify ✓</span>
-                        ) : (
-                            <img
-                                src="/brand/spotify.svg"
-                                alt="Spotify"
-                                className="w-6 h-6 shrink-0 scale-[10.6] object-contain"
-                            />
-                        )} 
+                        <img
+                            src="/brand/spotify.svg"
+                            alt="Spotify"
+                            className="w-6 h-6 shrink-0 scale-[10.6] object-contain"
+                        />
                     </button>
 
                     <button
