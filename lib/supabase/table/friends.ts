@@ -22,3 +22,24 @@ export async function follow(userId: string, followId: string) {
 
     return true;
 }
+
+export async function unfollow(userId: string, followId: string) {
+    console.log(`User ${userId} attempting to unfollow ${followId}`);
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+        .from('friends')
+        .delete()
+        .match({
+            user_id: userId,
+            following: followId
+        });
+
+    if ( error ) {
+        console.error(`Error when user ${userId} attempted to unfollow ${followId}`);
+        console.error(error);
+        return false;
+    }
+
+    return true;
+}

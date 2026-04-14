@@ -1,7 +1,7 @@
 "use server"
 
 import { createClient } from '@/lib/supabase/server';
-import ProfileHeader from './components/ProfileHeader'
+import HeaderWrapper from './components/HeaderWrapper'
 import Favorites from './components/Favorites';
 import ProfileFooter from './components/ProfileFooter';
 import { getClient } from './queries';
@@ -23,7 +23,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
                             <Loader2 className="w-6 h-6 text-[#1DB954] animate-spin" />
                         </div>
                     }>
-                    <ProfileHeader
+                    <HeaderWrapper
                         username={username}
                     />
                 </Suspense>

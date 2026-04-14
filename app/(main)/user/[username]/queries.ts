@@ -3,6 +3,7 @@ import 'server-only' // define server file
 import { getArtist, getArtists } from '@/lib/spotify/artist';
 import { getAlbum, getAlbums } from '@/lib/spotify/album';
 import { getSong, getSongs } from '@/lib/spotify/song';
+import { follow, unfollow } from '@/lib/supabase/table/friends'
 import { SupabaseClient } from "@supabase/supabase-js";
 import { notFound } from 'next/navigation';
 
@@ -48,6 +49,24 @@ type SBGenre = {
         id: string,
         genre: string
     }
+}
+
+export async function checkFollowing(supabase: SupabaseClient, userId: string, followId: string) {
+    const { data, error } = await supabase
+        .from('friends')
+        .select('*')
+        .match({
+            user_id: userId,
+            following: followId
+        });
+
+    if ( error ) {
+        console.error(`error when retrieving following status for user ${userId} -> ${followId}`);
+        console.error(error)
+        notFound();
+    }
+
+    return data.length === 1
 }
 
 export async function getProfile(supabase: SupabaseClient, username: string) {

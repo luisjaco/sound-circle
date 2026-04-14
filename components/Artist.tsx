@@ -30,7 +30,7 @@ export default function Artist({
             className="flex gap-3 cursor-pointer group mb-2"
             onClick={() => router.push(`/artist/${id}`)}
         >
-            <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[#1DB954] p-0.5 group-hover:ring-[#1ed760] transition-all shrink-0">
+            <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-[#1DB954] p-0.5 group-hover:ring-[#9fddb5] transition-all shrink-0">
                 {spotify_image ? (
                     <ImageWithFallback
                         src={spotify_image}
