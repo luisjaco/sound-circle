@@ -71,20 +71,7 @@ export default function ArtistPage({ params }: { params: Promise<{ artistId: str
   const currentList = activeTab === 'albums' ? albums : songs;
 
   return (
-    <div className="min-h-screen bg-black pb-20">
-      {/* Header */}
-      <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="text-gray-400 hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-6 h-6" />
-          </button>
-          <h1 className="text-xl font-bold text-white">Artist</h1>
-        </div>
-      </header>
-
+    <div className="min-h-screen bg-black pt-15 pb-20">
       <div className="max-w-2xl mx-auto px-4 py-6">
         {/* Artist Header */}
         <div className="text-center mb-6">

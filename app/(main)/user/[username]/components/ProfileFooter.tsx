@@ -55,9 +55,9 @@ export default function ProfileFooter({ username }: { username: string }) {
                         <button
                             key={key}
                             onClick={() => setFilter(key)}
-                            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 ${
+                            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 cursor-pointer ${
                                 filter === key
-                                    ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
+                                    ? 'bg-[#1DB954] text-black '
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                             }`}
                         >

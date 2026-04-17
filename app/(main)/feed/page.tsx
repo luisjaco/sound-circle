@@ -58,8 +58,8 @@ export default function FeedPage() {
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-sm font-medium transition-all duration-200 ${filter === key
-                  ? "bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20"
+              className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-3 rounded-md text-sm font-medium transition-all duration-200 cursor-pointer ${filter === key
+                  ? "bg-[#1DB954] text-black"
                   : "text-gray-400 hover:text-white hover:bg-white/5"
                 }`}
             >
