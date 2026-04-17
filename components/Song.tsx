@@ -10,7 +10,9 @@ type Props = {
     name?: string,
     artistName?: string,
     albumName?: string,
-    spotify_image?: string,
+    image?: string,
+    spotify_id?: string,
+    apple_music_id?: string,
 }
 
 
@@ -19,15 +21,12 @@ export default function Song({
     name,
     artistName,
     albumName,
-    spotify_image,
+    image,
+    spotify_id,
+    apple_music_id
 }: Props) {
 
     const router = useRouter();
-
-    useEffect(() => {
-        console.log(spotify_image);
-    }, [])
-
 
     const song = (
         <div
@@ -35,9 +34,9 @@ export default function Song({
             onClick={() => router.push(`/song/${id}`)}
         >
             <div className="w-16 h-16 rounded-md overflow-hidden ring-2 ring-[#1DB954] p-0.5 group-hover:ring-[#9fddb5] transition-all shrink-0">
-                {spotify_image ? (
+                {image ? (
                     <ImageWithFallback
-                        src={spotify_image}
+                        src={image}
                         alt={`image of song: ${name}`}
                         className="w-full h-full rounded-md object-cover"
                     />
@@ -81,7 +80,7 @@ export default function Song({
 
     return (
         <>
-            {id ? (song) : (blank)}
+            {(id || spotify_id || apple_music_id) ? (song) : (blank)}
         </>
     );
 }

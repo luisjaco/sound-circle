@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useMusicKit } from './providers/MusicKitProvider';
+import { useMusicKit } from '../../../../components/providers/MusicKitProvider';
 import { Music } from 'lucide-react';
 
 export default function AppleMusicAuthBtn() {
@@ -32,6 +32,7 @@ export default function AppleMusicAuthBtn() {
     return (
         <button
             onClick={handleAuth}
+            disabled={isAuthorized}
             className={`flex items-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-300 ${isAuthorized
                     ? 'bg-red-500/10 text-red-500 hover:bg-red-500/20 border border-red-500/20'
                     : 'bg-[#FA243C] text-white hover:bg-[#D61E32] shadow-lg shadow-[#FA243C]/20'

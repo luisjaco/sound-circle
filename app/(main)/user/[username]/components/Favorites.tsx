@@ -101,7 +101,7 @@ export default async function Favorites({
                     name={song.name}
                     /** @todo album name */
                     artistName={song.artist_name}
-                    spotify_image={song.spotify_image}
+                    image={song.spotify_image}
                 />
             )
             i++;

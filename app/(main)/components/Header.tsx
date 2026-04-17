@@ -36,16 +36,33 @@ export default function Header({
 
     )
 
+    // hacky way to lock the scroll when the sidebar is active... refer to SideBar.tsx for unlock.
+    function lockScroll() {
+        const scrollY = window.scrollY;
+
+        document.body.style.position = "fixed";
+        document.body.style.top = `-${scrollY}px`;
+        document.body.style.left = "0";
+        document.body.style.right = "0";
+        document.body.style.overflow = "hidden";
+    }
+
+    const openSideBar = () => {
+        // so there is no scroll within background.
+        lockScroll()
+        setSidebarOpen(true)
+    }
+
     return (
         <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10 flex justify-between items-center py-1">
 
             <div
                 className="cursor-pointer"
-                onClick={() => router.push('/feed')}    
+                onClick={() => router.push('/feed')}
             >
                 {soundCircleLogo}
             </div>
-            
+
 
             {
                 (pathname !== '/search') && (
@@ -106,7 +123,7 @@ export default function Header({
                 </button>
 
                 <button
-                    onClick={() => setSidebarOpen(true)}
+                    onClick={openSideBar}
                     className="flex justify-center items-center gap-1 text-gray-400 hover:text-[#1DB954] transition-colors cursor-pointer"
                 >
                     <Menu className="w-11 h-11" />

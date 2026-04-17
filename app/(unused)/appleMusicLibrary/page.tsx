@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useMusicKit } from '@/components/providers/MusicKitProvider';
-import AppleMusicAuthBtn from '@/components/AppleMusicAuthBtn';
+import AppleMusicAuthBtn from '@/app/(unused)/appleMusicLibrary/components/AppleMusicAuthBtn';
 import {
     ListMusic, Loader2, PlayCircle, Music, Clock, X,
     Plus, CheckCircle2, XCircle, ExternalLink, PlusCircle, Trash2,

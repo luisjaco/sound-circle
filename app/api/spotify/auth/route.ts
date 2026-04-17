@@ -4,9 +4,9 @@ export async function GET() {
     const clientId = process.env.SPOTIFY_CLIENT_ID;
     const redirectUri = process.env.SPOTIFY_REDIRECT_URI;
     
-    // log the values (for testing)
-    console.log(`REDIRECT_URI=[${redirectUri}]`);
-    console.log("CLIENT_ID exists: ", clientId !== undefined);
+    // // log the values (for testing)
+    // console.log(`REDIRECT_URI=[${redirectUri}]`);
+    // console.log("CLIENT_ID exists: ", clientId !== undefined);
 
     // permissions we are requesting from the user (listening history and top artists/tracks)
     const scopes = [

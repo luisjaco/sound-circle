@@ -5,12 +5,14 @@ type Props = {
 
 import Header from './components/Header';
 import SideBar from "./components/Sidebar";
+import ListeningHistory from './components/ListeningHistory';
 import { Suspense, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/browser";
 import { notFound } from 'next/navigation';
 
 export default function MainLayout({ children }: Props) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [listeningHistoryOpen, setListeningHistoryOpen] = useState(false);
 
     const supabase = createClient();
     const [username, setUsername] = useState('');
@@ -54,10 +56,15 @@ export default function MainLayout({ children }: Props) {
                 profilePictureUrl={profilePictureUrl}
             />
             <SideBar
+                setListeningHistoryOpen={setListeningHistoryOpen}
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
                 username={username}
                 profilePictureUrl={profilePictureUrl}
+            />
+            <ListeningHistory 
+                listeningHistoryOpen={listeningHistoryOpen}
+                setListeningHistoryOpen={setListeningHistoryOpen}
             />
             <Suspense>
                 {children}

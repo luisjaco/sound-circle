@@ -2,13 +2,14 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { Disc3, Heart, ListVideo, LogOut, SettingsIcon, } from 'lucide-react';
+import { ClockFading, Disc3, Heart, ListVideo, LogOut, SettingsIcon, } from 'lucide-react';
 import ProfilePicture from '@/components/img/ProfilePicture';
 import { createClient } from '@/lib/supabase/browser';
 
 type SidebarProps = {
     sidebarOpen: boolean
     setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    setListeningHistoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
     username: string,
     profilePictureUrl?: string,
 }
@@ -16,6 +17,7 @@ type SidebarProps = {
 export default function SideBar({
     sidebarOpen,
     setSidebarOpen,
+    setListeningHistoryOpen,
     username,
     profilePictureUrl
 }: SidebarProps) {
@@ -25,7 +27,9 @@ export default function SideBar({
     const [logoutError, setLogoutError] = useState(false);
 
     const push = (route: string) => {
+        setListeningHistoryOpen(false);
         setSidebarOpen(false);
+        unlockScroll();
         router.push(route);
     }
 
@@ -36,10 +40,32 @@ export default function SideBar({
             return;
         }
 
+        setListeningHistoryOpen(false);
+        unlockScroll();
         setLogoutError(false);
         setSidebarOpen(false);
         router.push('/');
     }
+
+    const closeSideBar = () => {
+        setSidebarOpen(false); 
+        setListeningHistoryOpen(false);
+        unlockScroll();
+    }
+
+    // hacky way to unlock scroll... refer to Header.tsx to find the lock scroll function.
+    function unlockScroll() {
+        const scrollY = Math.abs(parseInt(document.body.style.top || "0"));
+
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.overflow = "";
+
+        window.scrollTo(0, scrollY);
+    }
+
     const options = (
         <div className='flex flex-col w-full gap-3'>
 
@@ -80,13 +106,21 @@ export default function SideBar({
                 <Disc3 className="w-11 h-11" />
                 <p>Reviews</p>
             </div>
-            
+
             <div
                 className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
                 onClick={() => push(`/user/${username}/lists`)}
             >
                 <ListVideo className="w-11 h-11" />
                 <p>Lists</p>
+            </div>
+
+            <div
+                className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
+                onClick={() => setListeningHistoryOpen(true)}
+            >
+                <ClockFading className="w-11 h-11" />
+                <p>Listening History</p>
             </div>
         </div>
     )
@@ -96,7 +130,7 @@ export default function SideBar({
             {sidebarOpen && (
                 <div
                     className="fixed inset-0 bg-black/60 z-40"
-                    onClick={() => setSidebarOpen(false)}
+                    onClick={closeSideBar}
                 />
             )}
 
@@ -104,6 +138,7 @@ export default function SideBar({
                 className={`
           fixed top-0 right-0 h-full w-xs bg-[#0a0a0a]
           transform transition-transform duration-300 z-50
+          border-l-4 border-[#1DB954]
           ${sidebarOpen ? "translate-x-0" : "translate-x-full"}
         `}
             >
