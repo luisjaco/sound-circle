@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import supabase from '@/lib/supabase/admin';
 import { addArtistsToSupabase, findArtistIds } from '@/lib/supabase/table/artists';
+import { fetchPlatformIdsFallback } from '@/lib/platforms';
 
 /**
  * POST /api/universal-search/insert
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
 
         const { type, musicbrainzId, name, artistMbId, artistName } = body;
 
-        // ==================== ARTIST ====================
+        //ARTIST
         if (type === 'artist') {
             // Check if already exists
             const existing = await findArtistIds([musicbrainzId]);
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // ==================== ALBUM ====================
+        //ALBUM
         if (type === 'album') {
             // Check if already exists
             const { data: existingAlbum } = await supabase
@@ -83,9 +84,14 @@ export async function POST(req: NextRequest) {
             // Resolve artist first
             const artistDbId = await resolveArtistId(artistMbId || null, artistName || null);
 
+            // Fetch platform IDs
+            const { spotifyId, appleId } = await fetchPlatformIdsFallback('album', name, artistName);
+
             const insertData: Record<string, any> = {
                 musicbrainz_id: musicbrainzId,
                 name,
+                spotify_id: spotifyId || '',
+                apple_music_id: appleId || '',
             };
             if (artistDbId) {
                 insertData.artist_id = artistDbId;
@@ -112,7 +118,7 @@ export async function POST(req: NextRequest) {
             });
         }
 
-        // ==================== SONG ====================
+        // SONG 
         if (type === 'song') {
             // Check if already exists
             const { data: existingSong } = await supabase
@@ -139,11 +145,16 @@ export async function POST(req: NextRequest) {
                 );
             }
 
+            // Fetch platform IDs
+            const { spotifyId, appleId } = await fetchPlatformIdsFallback('song', name, artistName);
+
             const insertData: Record<string, any> = {
                 musicbrainz_id: musicbrainzId,
                 name,
                 artist_id: artistDbId,
                 isrc: '',
+                spotify_id: spotifyId || '',
+                apple_music_id: appleId || '',
             };
 
             const { data: newSong, error: songErr } = await supabase

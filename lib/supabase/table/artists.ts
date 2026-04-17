@@ -2,6 +2,7 @@ import 'server-only';
 
 import { MB_BASE, USER_AGENT } from '@/lib/musicbrainz';
 import supabase from '../admin';
+import { fetchPlatformIdsFallback } from '@/lib/platforms';
 
 type Artist = {
     id: string,
@@ -67,13 +68,20 @@ export async function addArtistsToSupabase(artists: Artist[]) {
     // 1. find relational data
     const completedArtists: CompletedArtist[] = [];
     for (const artist of artists) {
-        const { spotifyId, appleId } = await findRelationalData(artist.id);
+        let { spotifyId, appleId } = await findRelationalData(artist.id);
+
+        // Fallback for null ids
+        if (!spotifyId || !appleId) {
+            const fallback = await fetchPlatformIdsFallback('artist', artist.name);
+            if (!spotifyId && fallback.spotifyId) spotifyId = fallback.spotifyId;
+            if (!appleId && fallback.appleId) appleId = fallback.appleId;
+        }
 
         const supabaseReadyArtist = {
             musicbrainz_id: artist.id,
             name: artist.name,
-            spotify_id: spotifyId as string,
-            apple_music_id: appleId as string
+            spotify_id: spotifyId || '',
+            apple_music_id: appleId || ''
         }
         completedArtists.push(supabaseReadyArtist)
     }

@@ -2,6 +2,7 @@
 
 import { User, Mic2, Disc3, Music } from 'lucide-react';
 import { ImageWithFallback } from '@/components/img/ImageWithFallback';
+import { useRouter } from 'next/navigation';
 
 export type EntityType = 'user' | 'artist' | 'album' | 'song';
 
@@ -53,22 +54,36 @@ export default function SearchResultCard({ item }: { item: SearchResultItem }) {
         labelText = `${typeLabels[item.type]} · ${item.subtitle}`;
     }
 
-    const handleClick = () => {
-        // If the item is from MusicBrainz (not yet in Supabase), insert it asynchronously
+    const router = useRouter();
+
+    const handleClick = async () => {
+        let routeId = item.id;
+
+        // If the item is from MusicBrainz (not yet in Supabase), insert it first
         if (item.source === 'musicbrainz' && item.musicbrainzId) {
-            // Fire and forget — don't block the user
-            fetch('/api/universal-search/insert', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type: item.type,
-                    musicbrainzId: item.musicbrainzId,
-                    name: item.name,
-                    artistMbId: item.artistMbId || null,
-                    artistName: item.subtitle || null,
-                }),
-            }).catch((err) => console.error('Insert error:', err));
+            try {
+                const res = await fetch('/api/universal-search/insert', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: item.type,
+                        musicbrainzId: item.musicbrainzId,
+                        name: item.name,
+                        artistMbId: item.artistMbId || null,
+                        artistName: item.subtitle || null,
+                    }),
+                });
+                const data = await res.json();
+                if (data.id) {
+                    routeId = data.id;
+                }
+            } catch (err) {
+                console.error('Insert error:', err);
+                return; // Prevent navigating if we couldn't insert
+            }
         }
+
+        router.push(`/${item.type}/${routeId}`);
     };
 
     return (
