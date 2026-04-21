@@ -99,7 +99,6 @@ export default async function Favorites({
                 <Song
                     id={song.id}
                     name={song.name}
-                    /** @todo album name */
                     artistName={song.artist_name}
                     image={song.spotify_image}
                 />

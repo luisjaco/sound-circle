@@ -1,26 +1,25 @@
 'use client'
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { notFound, useRouter } from 'next/navigation';
+import { useState, useContext } from 'react';
+import { AsideContext } from '../../../components/AsideContext';
 import { ClockFading, Disc3, Heart, ListVideo, LogOut, SettingsIcon, } from 'lucide-react';
 import ProfilePicture from '@/components/img/ProfilePicture';
 import { createClient } from '@/lib/supabase/browser';
 
 type SidebarProps = {
-    sidebarOpen: boolean
-    setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;
-    setListeningHistoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
     username: string,
     profilePictureUrl?: string,
 }
 
 export default function SideBar({
-    sidebarOpen,
-    setSidebarOpen,
-    setListeningHistoryOpen,
     username,
     profilePictureUrl
 }: SidebarProps) {
+
+    const context = useContext(AsideContext);
+    if (!context) notFound();
+    const { setListeningHistoryOpen, setSidebarOpen, sidebarOpen } = context;
 
     const router = useRouter();
     const supabase = createClient();

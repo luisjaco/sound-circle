@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
     try {
         // spotifyFetch automatically handles token retrieval, 401s, and refresh
         const response = await spotifyFetch(
-            'https://api.spotify.com/v1/me/player/recently-played?limit=50',
+            'https://api.spotify.com/v1/me/player/recently-played?limit=30',
         );
 
         if(!response.ok) {

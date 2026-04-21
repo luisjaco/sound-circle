@@ -92,9 +92,12 @@ export default function LHSpotify() {
 
         const trackElements = [];
         for (const t of tracks) {
+            // if isrc not present, skip (won't be able to match)
+            if (t.isrc === null) continue;
+
             trackElements.push(
                 <Song
-                    spotify_id={t.id}
+                    isrc={t.isrc}
                     name={t.name}
                     artistName={t.artist_name}
                     image={t.image_url}

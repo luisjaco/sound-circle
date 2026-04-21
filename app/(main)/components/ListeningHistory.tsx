@@ -1,22 +1,20 @@
 'use client'
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { notFound, useRouter } from 'next/navigation';
+import { useContext, useState } from 'react';
 import { ClockFading } from 'lucide-react';
 import LHAppleMusic from './LHAppleMusic';
 import LHSpotify from './LHSpotify';
 import SpotifyIcon from '@/components/SpotifyIcon';
 import AppleMusicIcon from '@/components/AppleMusicIcon';
+import { AsideContext } from '../../../components/AsideContext';
 
-type ListeningHistoryProps = {
-    listeningHistoryOpen: boolean,
-    setListeningHistoryOpen: React.Dispatch<React.SetStateAction<boolean>>;
-}
 
-export default function ListeningHistory({
-    listeningHistoryOpen,
-    setListeningHistoryOpen
-}: ListeningHistoryProps) {
+export default function ListeningHistory() {
+
+    const context = useContext(AsideContext);
+    if (!context) notFound();
+    const { setListeningHistoryOpen, listeningHistoryOpen } = context;
 
     const [mode, setMode] = useState<'spotify' | 'apple_music' | null>(null);
 
@@ -33,7 +31,7 @@ export default function ListeningHistory({
             <div className="flex w-full text-lg items-center pt-4 pb-4 justify-around">
                 <div
                     className={`flex gap-2 items-center justify-center ${mode === 'spotify' ? 'text-[#1DB954] border-[#1DB954]' : 'hover:text-[#1DB954] hover:border-[#1DB954] border-gray-700'}  transition-colors cursor-pointer w-45 border-b-3 pb-3`}
-                    onClick={() => setMode('spotify')}    
+                    onClick={() => setMode('spotify')}
                 >
                     <SpotifyIcon />
                     <p>Spotify</p>
@@ -41,7 +39,7 @@ export default function ListeningHistory({
                 <div
                     className={`flex gap-2 items-center justify-center ${mode === 'apple_music' ? 'text-[#FA2D48] border-[#FA2D48]' : 'hover:text-[#FA2D48] hover:border-[#FA2D48] border-gray-700'} transition-colors cursor-pointer w-45 border-b-3 pb-3`}
                     onClick={() => setMode('apple_music')}
-                    >
+                >
                     <AppleMusicIcon />
                     <p>Apple Music</p>
                 </div>
@@ -70,8 +68,8 @@ export default function ListeningHistory({
             >
                 <div className="px-6 flex flex-col h-full w-full justify-between items-center">
                     {header}
-                    {mode === 'spotify' && (<LHSpotify/>)}
-                    {mode === 'apple_music' && (<LHAppleMusic/>)}
+                    {mode === 'spotify' && (<LHSpotify />)}
+                    {mode === 'apple_music' && (<LHAppleMusic />)}
                 </div>
             </aside>
         </>

@@ -16,8 +16,8 @@ type CompletedArtist = {
     apple_music_id: string;
 }
 
-async function findRelationalData(id: string) {
-    const url = `${MB_BASE}/artist/${encodeURIComponent(id)}?inc=url-rels&fmt=json`
+export async function findRelationalData(MBID: string) {
+    const url = `${MB_BASE}/artist/${encodeURIComponent(MBID)}?inc=url-rels&fmt=json`
 
     const res = await fetch(url, {
         headers: {
@@ -29,7 +29,7 @@ async function findRelationalData(id: string) {
     const data = await res.json();
 
     if (!res.ok) {
-        console.error('Error found while fetching artist relational data for artist:', id);
+        console.error('Error found while fetching artist relational data for artist:', MBID);
         return { spotifyId: null, appleId: null };
     }
 

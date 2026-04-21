@@ -117,6 +117,32 @@ export async function lookupByISRC(isrc: string): Promise<MBRecording | null> {
     }
 }
 
+// include album and artist information, search by ISRC
+export async function lookupByISRCComplete(isrc: string): Promise<MBRecording | null> {
+    try {
+        // Using /recording search by ISRC is preferred because the /isrc endpoint drops the 'releases' array in its responses
+        const res = await rateLimitedFetch(`${MB_BASE}/recording?query=isrc:${encodeURIComponent(isrc)}&fmt=json&limit=1&inc=artists+releases+release-groups`);
+
+        if (!res.ok) {
+            if (res.status === 404) return null;
+            throw new Error(`MusicBrainz ISRC lookup failed: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const recordings: any[] = data.recordings;
+
+        if (!recordings || recordings.length === 0) return null;
+
+        // Take the first recording (best match)
+        const rec = recordings[0];
+
+        return rec
+    } catch (err) {
+        console.error(`ISRC lookup error for ${isrc}:`, err);
+        return null;
+    }
+}
+
 //Text Search Fallback
 
 export async function searchRecording(
@@ -161,6 +187,31 @@ export async function searchRecording(
     }
 }
 
+export async function searchRecordingComplete(artistName: string, songName: string) {
+    try {
+        const query = `recording:"${songName}" AND artist:"${artistName}"`
+        // Using /recording search by ISRC is preferred because the /isrc endpoint drops the 'releases' array in its responses
+        const res = await rateLimitedFetch(`${MB_BASE}/recording?query=${encodeURIComponent(query)}&fmt=json&limit=1&inc=artists+releases+release-groups`);
+
+        if (!res.ok) {
+            if (res.status === 404) return null;
+            throw new Error(`MusicBrainz ISRC lookup failed: ${res.status}`);
+        }
+
+        const data = await res.json();
+        const recordings: any[] = data.recordings;
+
+        if (!recordings || recordings.length === 0) return null;
+
+        // Take the first recording (best match)
+        const rec = recordings[0];
+
+        return rec
+    } catch (err) {
+        console.error(`Search error for artistName: ${artistName}, songName: ${songName}`, err);
+        return null;
+    }
+}
 //Artist Search
 
 export async function searchArtist(query: string, limit: number = 5) {

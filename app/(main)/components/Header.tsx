@@ -1,23 +1,26 @@
 'use client'
 
 import ProfilePicture from "@/components/img/ProfilePicture";
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Home, Menu, Search, X } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, notFound } from "next/navigation";
+import { AsideContext } from "../../../components/AsideContext";
 
 import Logo from "@/components/Logo";
 
 type HeaderProps = {
-    setSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>,
     username: string,
     profilePictureUrl?: string,
 }
 
 export default function Header({
-    setSidebarOpen,
     username,
     profilePictureUrl
 }: HeaderProps) {
+
+    const context = useContext(AsideContext);
+    if (!context) notFound();
+    const { setSidebarOpen } = context;
 
     const router = useRouter();
     const pathname = usePathname();
