@@ -32,14 +32,15 @@ export default function LandingPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button
             onClick={() => router.push('/signup')}
-            className="bg-[#1DB954] hover:bg-[#1ed760] text-white px-8 py-6 text-lg rounded-full font-medium transition-all hover:scale-105"
+            variant="outline"
+            className="border-2 border-[#1DB954] text-[#1DB954] hover:bg-[#1DB954] hover:text-white px-8 py-6 text-lg rounded-full font-bold transition-all cursor-pointer"
           >
             Sign Up
           </Button>
           <Button
             onClick={() => router.push('/login')}
             variant="outline"
-            className="border-2 border-[#1DB954] text-[#1DB954] hover:bg-[#1DB954] hover:text-white px-8 py-6 text-lg rounded-full font-medium transition-all"
+            className="border-2 border-[#1DB954] text-[#1DB954] hover:bg-[#1DB954] hover:text-white px-8 py-6 text-lg rounded-full font-bold transition-all cursor-pointer"
           >
             Log In
           </Button>
