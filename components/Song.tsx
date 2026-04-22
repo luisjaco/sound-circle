@@ -17,8 +17,8 @@ type Props = {
 
 export default function Song({
     id,
-    name,
     isrc,
+    name,
     artistName,
     image,
 }: Props) {
@@ -120,7 +120,7 @@ export default function Song({
 
     return (
         <>
-            {(id !== null || isrc !== null) ? (song) : (blank)}
+            {(id || isrc ) ? (song) : (blank)}
             <p hidden={!error} className='text-red-500 text-2xs'>There was an error retrieving this song.</p>
         </>
     );
