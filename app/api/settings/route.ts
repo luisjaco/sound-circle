@@ -1,7 +1,53 @@
 import { createClient } from "@/lib/supabase/server";
 
 // route handler for /api/settings
-// handles fetching and updating username, name, bio, location, profile picture, and favorite genres
+// handler for fetching current user settings
+export async function GET() {
+    const supabase = await createClient();
+
+    // get logged-in user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if ( authError || !user) {
+        return Response.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // fetch this user's data
+    const { data: currentUser, error: userError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+    if (userError || !currentUser) {
+        return Response.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    const { data: genreData, error: genreError } = await supabase
+        .from('user_favorite_genres')
+        .select(`
+            genre_id,
+            genres (
+                id,
+                genre
+            )
+        `)
+        .eq('user_id', user.id);
+    if (genreError) {
+        return Response.json({ error: 'Failed to fetch favorite genres' }, { status: 500 });
+    }
+
+    const favoriteGenres = (genreData || [])
+        .map((row: any) => row.genres)
+        .filter(Boolean);
+    
+    return Response.json({
+        user: currentUser,
+        favoriteGenres
+    });
+}
+
+// handles updating username, name, bio, location, profile picture, and favorite genres
 export async function PATCH(req: Request) {
     const supabase = await createClient();
 
@@ -203,50 +249,4 @@ export async function PATCH(req: Request) {
     }
 
     return Response.json({ message: 'Profile updated successfully' });
-}
-
-// handler for fetching current user settings
-export async function GET() {
-    const supabase = await createClient();
-
-    // get logged-in user
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if ( authError || !user) {
-        return Response.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    // fetch this user's data
-    const { data: currentUser, error: userError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single();
-
-    if (userError || !currentUser) {
-        return Response.json({ error: 'User not found' }, { status: 404 });
-    }
-
-    const { data: genreData, error: genreError } = await supabase
-        .from('user_favorite_genres')
-        .select(`
-            genre_id,
-            genres (
-                id,
-                genre
-            )
-        `)
-        .eq('user_id', user.id);
-    if (genreError) {
-        return Response.json({ error: 'Failed to fetch favorite genres' }, { status: 500 });
-    }
-
-    const favoriteGenres = (genreData || [])
-        .map((row: any) => row.genres)
-        .filter(Boolean);
-    
-    return Response.json({
-        user: currentUser,
-        favoriteGenres
-    });
 }

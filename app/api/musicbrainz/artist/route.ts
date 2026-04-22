@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { searchArtist } from '@/lib/musicbrainz';
 
+function matchValidLimit(val: string | null, fallback: number): number {
+    if (!val) return fallback;
+    const parsed = parseInt(val, 10);
+    return isNaN(parsed) || parsed < 1 || parsed > 50 ? fallback : parsed;
+}
+
 export async function GET(req: NextRequest) {
     try {
         const url = new URL(req.url);
@@ -17,6 +23,7 @@ export async function GET(req: NextRequest) {
 
         results = results
             .filter(a => !['[unknown]', 'various artists', '[no artist]'].includes(a.name.toLowerCase()))
+            .sort((a: any, b: any) => (b.score ?? 0) - (a.score ?? 0))
             .slice(0, limit);
 
         return NextResponse.json({ results });
@@ -27,10 +34,4 @@ export async function GET(req: NextRequest) {
             { status: 500 }
         );
     }
-}
-
-function matchValidLimit(val: string | null, fallback: number): number {
-    if (!val) return fallback;
-    const parsed = parseInt(val, 10);
-    return isNaN(parsed) || parsed < 1 || parsed > 50 ? fallback : parsed;
 }
