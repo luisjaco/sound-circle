@@ -15,6 +15,14 @@ export async function getSpotifyTokens() {
     return { accessToken, refreshToken };
 }
 
+export async function logout() {
+
+    const cookieStore = await cookies();
+
+    cookieStore.delete('spotify_access_token');
+    cookieStore.delete('spotify_refresh_token');
+}
+
 // use this for every spotify api call instead of raw fetch
 // will automatically 401s by refreshing the access token and retrying once
 export async function spotifyFetch(url: string, options: RequestInit = {}, retry = true): Promise<Response> {

@@ -6,6 +6,7 @@ import { AsideContext } from '../../../components/AsideContext';
 import { ClockFading, Disc3, Heart, ListVideo, LogOut, SettingsIcon, } from 'lucide-react';
 import ProfilePicture from '@/components/img/ProfilePicture';
 import { createClient } from '@/lib/supabase/browser';
+import { useMusicKit } from '@/components/providers/MusicKitProvider';
 
 type SidebarProps = {
     username: string,
@@ -17,6 +18,8 @@ export default function SideBar({
     profilePictureUrl
 }: SidebarProps) {
 
+    const MusicKit = useMusicKit();
+
     const context = useContext(AsideContext);
     if (!context) notFound();
     const { setListeningHistoryOpen, setSidebarOpen, sidebarOpen } = context;
@@ -24,6 +27,8 @@ export default function SideBar({
     const router = useRouter();
     const supabase = createClient();
     const [logoutError, setLogoutError] = useState(false);
+
+
 
     const push = (route: string) => {
         setListeningHistoryOpen(false);
@@ -33,11 +38,19 @@ export default function SideBar({
     }
 
     const logout = async () => {
+
+        // logout supabase
         const { error } = await supabase.auth.signOut()
         if (error) {
             setLogoutError(true);
             return;
         }
+
+        // logout MusicKit
+        MusicKit.unauthorize();
+
+        // logout spotify
+        await fetch('/api/logout', { method: 'POST'})
 
         setListeningHistoryOpen(false);
         unlockScroll();
