@@ -3,6 +3,7 @@
 
 import { getProfile, getProfileStatistics, getFavoriteGenres } from '../queries';
 import { createClient } from '@/lib/supabase/server';
+import { stringToColor } from '@/lib/utils/stringToColor';
 
 import Header from './Header';
 
@@ -51,20 +52,6 @@ export default async function ProfileHeader({
         currentUser={currentUser}
         genres={completeGenres}
     />
-}
-
-// deterministic hash to give the genres pop.
-function stringToColor(text: string): string {
-    let hash = 0
-    for (let i = 0; i < text.length; i++) {
-        hash = text.charCodeAt(i) + ((hash << 5) - hash)
-    }
-
-    const h = hash % 360           // hue (0-360)
-    const s = 50                    // lower saturation = more muted
-    const l = 40                    // higher lightness = softer/faded
-
-    return `hsl(${h}, ${s}%, ${l}%)`
 }
 
 function populateGenres(genres: any) {
