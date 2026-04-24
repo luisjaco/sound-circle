@@ -88,6 +88,7 @@ export default function Header({
 
         if (!res.ok || !(res.status === 200)) {
             setFollowError(true);
+            return;
         }
 
         setFollowError(false);
