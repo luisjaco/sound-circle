@@ -1,9 +1,29 @@
 'use client'
-import { ArrowLeft, ExternalLink, Music, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Music, ChevronDown, Send, X } from 'lucide-react';
 import { VinylRating } from '@/components/vinyl-rating';
 import { ImageWithFallback } from '@/components/img/ImageWithFallback';
 import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/browser';
+
+
+// turns a timestamp into a friendly "2h ago" style string
+function getTimeAgo(dateStr: string): string {
+  const now = new Date();
+  const then = new Date(dateStr);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  const diffWeeks = Math.floor(diffDays / 7);
+
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+  if (diffWeeks < 52) return `${diffWeeks}w ago`;
+  return then.toLocaleDateString();
+}
 
 
 export default function AlbumPage({ params }: { params: Promise<{ albumId: string }> }) {
@@ -14,6 +34,26 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
   const [albumData, setAlbumData] = useState<any>(null);
   const [songs, setSongs] = useState<any[]>([]);
 
+  // everything related to the review form + fetched reviews
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewText, setReviewText] = useState('');
+  const [reviewRating, setReviewRating] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // grab the logged-in user so we can attach their id to reviews
+  useEffect(() => {
+    async function getUser() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    }
+    getUser();
+  }, []);
+
+  // pull album info + tracklist on mount
   useEffect(() => {
     async function loadData() {
       try {
@@ -22,7 +62,7 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
         const data = await res.json();
         setAlbumData(data.album);
         
-        // Sort songs natively via spotify track numbering
+        // sort tracks by their spotify track number
         const sortedSongs = (data.songs || []).sort((a: any, b: any) => (a.trackNumber || 0) - (b.trackNumber || 0));
         setSongs(sortedSongs);
       } catch (err) {
@@ -33,6 +73,70 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
     }
     loadData();
   }, [albumId]);
+
+  // load all reviews for this album (newest first)
+  const fetchReviews = async () => {
+    setReviewsLoading(true);
+    try {
+      const res = await fetch(`/api/search-reviews?type=album&album_id=${albumId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setReviews(data.reviews || []);
+      }
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [albumId]);
+
+  // send the review to the backend and refresh the list
+  const handleSubmitReview = async () => {
+    if (!userId) {
+      alert('You must be logged in to write a review.');
+      return;
+    }
+    if (!reviewText.trim() && reviewRating === 0) {
+      alert('Please write a review or select a rating.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/add-review', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'album',
+          album_id: Number(albumId),
+          user_id: userId,
+          rating: reviewRating > 0 ? reviewRating : null,
+          review: reviewText.trim() || null,
+          is_public: true,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || 'Failed to submit review');
+      }
+
+      // clear the form and reload reviews so the new one shows up
+      setReviewText('');
+      setReviewRating(0);
+      setShowReviewForm(false);
+      await fetchReviews();
+    } catch (err: any) {
+      console.error('Submit review error:', err);
+      alert(err.message || 'Failed to submit review');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const toggleSong = (songId: string) => {
     setExpandedSongs(prev => 
@@ -95,7 +199,7 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
                {albumData.releaseYear || 'Album'}
             </p>
             
-            {/* Overall Rating (Simulated mapped via Spotify Popularity indices scaled /10) */}
+            {/* rating based on spotify popularity, scaled to /10 */}
             <div className="flex items-baseline gap-2 mb-3">
               <span className="text-4xl font-bold text-[#1DB954]">
                  {albumData.popularity !== undefined ? (albumData.popularity / 10).toFixed(1) : '--'}
@@ -187,13 +291,94 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
         <div>
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-white font-bold">User Reviews</h3>
-            <button className="text-[#1DB954] hover:text-[#1ed760] text-sm font-medium transition-colors">
-              Write a Review
+            <button
+              onClick={() => setShowReviewForm(!showReviewForm)}
+              className="text-[#1DB954] hover:text-[#1ed760] text-sm font-medium transition-colors"
+            >
+              {showReviewForm ? 'Cancel' : 'Write a Review'}
             </button>
           </div>
+
+          {/* write a review form — shows when the user clicks the button */}
+          {showReviewForm && (
+            <div className="bg-[#181818] rounded-xl p-5 mb-6 border border-gray-800/50">
+              <div className="mb-4">
+                <label className="text-gray-400 text-sm mb-2 block">Your Rating</label>
+                <VinylRating
+                  rating={reviewRating}
+                  interactive={true}
+                  size="lg"
+                  onRatingChange={(r) => setReviewRating(r)}
+                />
+              </div>
+              <div className="mb-4">
+                <label className="text-gray-400 text-sm mb-2 block">Your Review</label>
+                <textarea
+                  value={reviewText}
+                  onChange={(e) => setReviewText(e.target.value)}
+                  placeholder="What did you think of this album?"
+                  className="w-full bg-[#0a0a0a] border border-gray-700 rounded-lg p-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#1DB954] transition-colors resize-none min-h-[120px]"
+                />
+              </div>
+              <div className="flex items-center justify-end gap-3">
+                <button
+                  onClick={() => {
+                    setShowReviewForm(false);
+                    setReviewText('');
+                    setReviewRating(0);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-gray-400 hover:text-white text-sm transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSubmitReview}
+                  disabled={submitting}
+                  className="flex items-center gap-2 bg-[#1DB954] hover:bg-[#1ed760] disabled:opacity-50 disabled:cursor-not-allowed text-white px-5 py-2 rounded-full text-sm font-medium transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                  {submitting ? 'Submitting...' : 'Submit Review'}
+                </button>
+              </div>
+            </div>
+          )}
           
+          {/* all reviews for this album */}
           <div className="space-y-4">
-             <p className="text-gray-500 text-center py-8">No reviews yet.</p>
+            {reviewsLoading ? (
+              <div className="space-y-3 animate-pulse">
+                {[1, 2].map(i => (
+                  <div key={i} className="bg-[#181818] rounded-xl p-5 h-28" />
+                ))}
+              </div>
+            ) : reviews.length > 0 ? (
+              reviews.map((r: any) => (
+                <div key={r.id} className="bg-[#181818] border border-gray-800/50 rounded-xl p-5 hover:bg-[#1f1f1f] transition-all duration-200">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center">
+                        <span className="text-white font-bold text-xs">
+                          {(r.user_id as string).charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <span className="text-gray-400 text-xs">{getTimeAgo(r.created_at)}</span>
+                    </div>
+                    {r.rating != null && (
+                      <VinylRating rating={r.rating} size="sm" />
+                    )}
+                  </div>
+                  {r.review && (
+                    <p className="text-gray-300 text-sm leading-relaxed">{r.review}</p>
+                  )}
+                  {r.edited_at && (
+                    <p className="text-gray-600 text-xs mt-2 italic">edited</p>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-8">No reviews yet. Be the first!</p>
+            )}
           </div>
         </div>
       </div>
