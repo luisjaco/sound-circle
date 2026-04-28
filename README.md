@@ -1,13 +1,14 @@
-<div align='center'>
-    <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
-    <h1 style="font-size: 3rem; font-weight: 700; color: #1DB954; margin: 0;">
-        SoundCircle
-    </h1>
-    <img src='/app/disc-3.svg' width='56' height='56' style='display: block; margin-left: 10px; margin-bottom: 10px;'/>
-    </div>
+<div align="center">
+  <img src="/app/disc-3.svg" width="100" height="100" />
+
+  <h1 style="color: #1DB954;">
+    SoundCircle
+  </h1>
+  <p style="margin: 0; font-size: 1.1rem;">
+    "Discover and share music with your circle"
+  </p>
 </div>
 
-# SoundCircle
 > This is a senior dual-semester project for the 2025-2026 New York Institute of Technology academic year.
 >
 > Contributors: Luis Jaco, Risham Singh, Paulo Gonzalez, Logan Boiko, and Shafil Jayed.
