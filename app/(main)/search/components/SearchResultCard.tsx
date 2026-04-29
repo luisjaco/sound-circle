@@ -59,6 +59,11 @@ export default function SearchResultCard({ item }: { item: SearchResultItem }) {
     const handleClick = async () => {
         let routeId = item.id;
 
+        // If it's a user, we want to route to their username instead of their UUID
+        if (item.type === 'user' && item.subtitle?.startsWith('@')) {
+            routeId = item.subtitle.substring(1);
+        }
+
         // If the item is from MusicBrainz (not yet in Supabase), insert it first
         if (item.source === 'musicbrainz' && item.musicbrainzId) {
             try {
