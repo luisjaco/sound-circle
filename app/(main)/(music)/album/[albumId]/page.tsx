@@ -149,8 +149,8 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20 animate-pulse">
-        <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10 h-14" />
+      <div className="min-h-screen bg-black pt-15 pb-20 animate-pulse">
+        
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="flex gap-6 mb-6">
             <div className="w-40 h-40 rounded-lg bg-[#181818] flex-shrink-0" />

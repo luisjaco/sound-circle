@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Disc3 } from 'lucide-react';
+import { Heart } from 'lucide-react';
 
 interface UpvoteButtonProps {
     postId: number;
@@ -80,8 +80,8 @@ export default function UpvoteButton({ postId, userId }: UpvoteButtonProps) {
             }`}
             title={upvoted ? 'Remove upvote' : 'Upvote'}
         >
-            <Disc3
-                className={`w-[18px] h-[18px] transition-transform duration-500 ${upvoted ? 'scale-110 animate-[spin_2s_linear_infinite]' : ''}`}
+            <Heart
+                className={`w-4.5 h-4.5`}
             />
             {count > 0 && <span>{count}</span>}
         </button>

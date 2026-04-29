@@ -70,7 +70,6 @@ export async function checkFollowing(supabase: SupabaseClient, userId: string, f
 }
 
 export async function getProfile(supabase: SupabaseClient, username: string) {
-    let isOwner = false;
 
     const { data: profile } = await supabase
         .from('users')

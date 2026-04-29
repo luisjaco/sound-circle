@@ -55,11 +55,10 @@ export default function ProfileFooter({ username }: { username: string }) {
                         <button
                             key={key}
                             onClick={() => setFilter(key)}
-                            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 cursor-pointer ${
-                                filter === key
+                            className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 cursor-pointer ${filter === key
                                     ? 'bg-[#1DB954] text-black '
                                     : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
+                                }`}
                         >
                             {Icon && <Icon className="w-3 h-3" />}
                             {label}
@@ -97,10 +96,12 @@ export default function ProfileFooter({ username }: { username: string }) {
                             ? review.song?.artists?.name ?? 'Unknown Artist'
                             : review.album?.artists?.name ?? 'Unknown Artist';
 
+                        const id = review.id;
                         return (
                             <div
                                 key={`${review.review_type}-${review.id}`}
                                 className="bg-[#181818] rounded-lg p-4 hover:bg-[#282828] transition-colors cursor-pointer"
+                                onClick={() => router.push(`/review/${id}`)}
                             >
                                 <div className="flex gap-4">
                                     {/* Art output or placeholder */}
@@ -127,31 +128,38 @@ export default function ProfileFooter({ username }: { username: string }) {
                                     )}
 
                                     <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <h4 className="text-white font-medium truncate">
-                                                {itemName}
-                                            </h4>
-                                            {/* Type badge */}
-                                            <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
-                                                review.review_type === 'song'
-                                                    ? 'bg-purple-500/15 text-purple-400'
-                                                    : 'bg-blue-500/15 text-blue-400'
-                                            }`}>
-                                                {review.review_type === 'song' ? 'Song' : 'Album'}
-                                            </span>
-                                            {!review.is_public && (
-                                                <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
-                                                    Private
+                                        <div className='flex justify-between items-center'>
+
+                                            <div>
+                                                <div className="flex items-center gap-2 mb-1">
+                                                <h4 className="text-white font-medium truncate">
+                                                    {itemName}
+                                                </h4>
+                                                {/* Type badge */}
+                                                <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${review.review_type === 'song'
+                                                        ? 'bg-purple-500/15 text-purple-400'
+                                                        : 'bg-blue-500/15 text-blue-400'
+                                                    }`}>
+                                                    {review.review_type === 'song' ? 'Song' : 'Album'}
                                                 </span>
+                                                {!review.is_public && (
+                                                    <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
+                                                        Private
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <p className="text-gray-400 text-sm mb-2">{artistName}</p>
+                                            </div>
+                                            
+
+                                            {review.rating != null && (
+                                                <div className='pr-15'>
+                                                    <VinylRating rating={review.rating} size="sm" />
+                                                </div>
                                             )}
                                         </div>
-
-                                        <p className="text-gray-400 text-sm mb-2">{artistName}</p>
-
-                                        {review.rating != null && (
-                                            <VinylRating rating={review.rating} size="sm" />
-                                        )}
-
+                                        
                                         {review.review && (
                                             <p className="text-gray-300 text-sm mt-2 line-clamp-2">
                                                 {review.review}

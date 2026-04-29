@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/browser';
 import { useState, useEffect } from 'react';
 import AppleMusicIcon from '@/components/AppleMusicIcon';
 import SpotifyIcon from '@/components/SpotifyIcon';
+import { useRouter } from 'next/navigation';
 
 type HeaderProps = {
     profile: {
@@ -27,13 +28,12 @@ type HeaderProps = {
     genres: Object[]
 }
 
-
 export default function Header({
     profile,
     stats,
     currentUser,
     genres
-}: HeaderProps
+}: HeaderProps,
 ) {
 
     const supabase = createClient();
@@ -43,6 +43,7 @@ export default function Header({
     const isUser = (currentUser.data.user?.id === id);
     const [followError, setFollowError] = useState(false);
     const [activeFollowers, setActiveFollowers] = useState(followers);
+    const router = useRouter();
 
     useEffect(() => {
         let isMounted = true;
@@ -146,11 +147,17 @@ export default function Header({
                 <p className="text-white font-bold text-2xl">{reviews}</p>
                 <p className="text-gray-400 text-md">{reviews === 1 ? "Review" : "Reviews"}</p>
             </div>
-            <div className={`text-center py-2 rounded-lg w-40  bg-[#181818] transition-all ${isFollowing && 'ring-1 ring-[#1DB954]'}`}>
+            <div 
+                className={`text-center py-2 rounded-lg w-40 cursor-pointer bg-[#181818] transition-all ${isFollowing && 'ring-1 ring-[#1DB954]'}`}
+                onClick={() => router.push(`/user/${username}/friends?m='followers'`)}
+            >
                 <p className="text-white font-bold text-2xl">{activeFollowers}</p>
                 <p className="text-gray-400 text-md">{activeFollowers === 1 ? "Follower" : "Followers"}</p>
             </div>
-            <div className="text-center bg-[#181818] py-2 rounded-lg w-40">
+            <div 
+                className="text-center bg-[#181818] cursor-pointer py-2 rounded-lg w-40"
+                onClick={() => router.push(`/user/${username}/friends?m='following'`)}    
+            >
                 <p className="text-white font-bold text-2xl">{following}</p>
                 <p className="text-gray-400 text-md">Following</p>
             </div>

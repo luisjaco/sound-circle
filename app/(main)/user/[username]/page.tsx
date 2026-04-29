@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import HeaderWrapper from './components/HeaderWrapper'
 import Favorites from './components/Favorites';
 import ProfileFooter from './components/ProfileFooter';
-import { getClient } from './queries';
+import { getProfile } from './queries';
 import { Loader2 } from 'lucide-react';
 import { Suspense } from 'react';
 
@@ -12,7 +12,8 @@ export default async function ProfilePage({ params }: { params: { username: stri
     const supabase = await createClient();
     const { username } = await params;
 
-    const userId = await getClient(supabase);
+
+    const user = await getProfile(supabase, username);
 
     return (
         <div className="min-h-screen bg-black pb-20">
@@ -35,7 +36,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
                         </div>
                     }>
                     <Favorites
-                        userId={userId}
+                        userId={user.id}
                     />
                 </Suspense>
                 <ProfileFooter username={username} />
