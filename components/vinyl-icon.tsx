@@ -1,9 +1,10 @@
 interface VinylIconProps {
   filled?: boolean;
   className?: string;
+  color?: string;
 }
 
-export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconProps) {
+export function VinylIcon({ filled = false, className = "w-5 h-5", color = "#1DB954" }: VinylIconProps) {
   return (
     <svg 
       viewBox="0 0 24 24" 
@@ -16,9 +17,9 @@ export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconPr
         cx="12" 
         cy="12" 
         r="11" 
-        stroke={filled ? "#1DB954" : "#4B5563"}
+        stroke={filled ? color : "#4B5563"}
         strokeWidth="0.5"
-        fill={filled ? "#1DB954" : "transparent"}
+        fill={filled ? color : "transparent"}
         opacity={filled ? "0.2" : "1"}
       />
       
@@ -27,7 +28,7 @@ export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconPr
         cx="12" 
         cy="12" 
         r="9" 
-        stroke={filled ? "#1DB954" : "#4B5563"}
+        stroke={filled ? color : "#4B5563"}
         strokeWidth="0.3"
         fill="none"
         opacity="0.6"
@@ -36,7 +37,7 @@ export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconPr
         cx="12" 
         cy="12" 
         r="7.5" 
-        stroke={filled ? "#1DB954" : "#4B5563"}
+        stroke={filled ? color : "#4B5563"}
         strokeWidth="0.3"
         fill="none"
         opacity="0.5"
@@ -45,7 +46,7 @@ export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconPr
         cx="12" 
         cy="12" 
         r="6" 
-        stroke={filled ? "#1DB954" : "#4B5563"}
+        stroke={filled ? color : "#4B5563"}
         strokeWidth="0.3"
         fill="none"
         opacity="0.4"
@@ -56,8 +57,8 @@ export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconPr
         cx="12" 
         cy="12" 
         r="4.5" 
-        fill={filled ? "#1DB954" : "#1F2937"}
-        stroke={filled ? "#1DB954" : "#4B5563"}
+        fill={filled ? color : "#1F2937"}
+        stroke={filled ? color : "#4B5563"}
         strokeWidth="0.5"
       />
       
@@ -67,7 +68,7 @@ export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconPr
         cy="12" 
         r="1.5" 
         fill="#000000"
-        stroke={filled ? "#1DB954" : "#6B7280"}
+        stroke={filled ? color : "#6B7280"}
         strokeWidth="0.3"
       />
       
@@ -76,7 +77,7 @@ export function VinylIcon({ filled = false, className = "w-5 h-5" }: VinylIconPr
         cx="12" 
         cy="12" 
         r="0.5" 
-        fill={filled ? "#1DB954" : "#9CA3AF"}
+        fill={filled ? color : "#9CA3AF"}
       />
     </svg>
   );

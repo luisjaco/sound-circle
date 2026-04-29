@@ -73,15 +73,15 @@ export default function UpvoteButton({ postId, userId }: UpvoteButtonProps) {
                 e.stopPropagation();
                 handleToggle();
             }}
-            className={`flex items-center gap-1.5 transition-colors text-xs font-medium ${
+            className={`w-full h-full flex items-center justify-center gap-1.5 transition-all duration-300 text-xs font-semibold tracking-wide uppercase ${
                 upvoted
                     ? 'text-[#1DB954]'
-                    : 'text-gray-500 hover:text-[#1DB954]'
+                    : 'text-gray-400 hover:text-[#1DB954]'
             }`}
             title={upvoted ? 'Remove upvote' : 'Upvote'}
         >
             <Disc3
-                className={`w-[18px] h-[18px] transition-transform ${upvoted ? 'scale-110' : ''}`}
+                className={`w-[18px] h-[18px] transition-transform duration-500 ${upvoted ? 'scale-110 animate-[spin_2s_linear_infinite]' : ''}`}
             />
             {count > 0 && <span>{count}</span>}
         </button>

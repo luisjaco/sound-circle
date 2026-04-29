@@ -157,105 +157,125 @@ export default function ReviewPage({ params }: { params: Promise<{ reviewId: str
         </button>
 
         {/* Review Card */}
-        <div className="bg-[#181818] border border-gray-800/50 rounded-xl p-6">
+        <div className="relative flex flex-col border border-white/5 bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-6 overflow-hidden group shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+          {/* Atmospheric Background Glow */}
+          <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#1DB954]/5 rounded-full blur-[80px] pointer-events-none z-0" />
+          <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] pointer-events-none z-0" />
 
-          {/* User header */}
-          <div className="flex items-center gap-3 mb-5">
-            <button
-              onClick={() => router.push(`/user/${review.user.username}`)}
-              className="shrink-0"
-            >
-              {review.user.profile_picture_url ? (
-                <ImageWithFallback
-                  src={review.user.profile_picture_url}
-                  alt={review.user.username}
-                  className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-700 hover:ring-[#1DB954] transition-all"
-                />
-              ) : (
-                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center ring-2 ring-gray-700 hover:ring-[#1DB954] transition-all">
-                  <span className="text-white font-bold text-sm">
-                    {review.user.username.charAt(0).toUpperCase()}
-                  </span>
-                </div>
-              )}
-            </button>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => router.push(`/user/${review.user.username}`)}
-                  className="text-white font-medium hover:text-[#1DB954] transition-colors truncate"
-                >
-                  {review.user.name || review.user.username}
-                </button>
-                <span className="text-gray-500 text-xs shrink-0">•</span>
-                <span className="text-gray-500 text-xs shrink-0">{timeAgo}</span>
-              </div>
-              <p className="text-gray-500 text-xs">@{review.user.username}</p>
-            </div>
-            {/* Review type badge */}
-            <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
-                review.review_type === 'song'
-                  ? 'bg-purple-500/15 text-purple-400 border border-purple-500/20'
-                  : 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
-              }`}
-            >
-              {review.review_type === 'song' ? (
-                <Music className="w-3 h-3" />
-              ) : (
-                <Disc3 className="w-3 h-3" />
-              )}
-              {review.review_type === 'song' ? 'Song' : 'Album'}
-            </div>
-          </div>
-
-          {/* Media info */}
-          <div
-            onClick={() => router.push(entityLink)}
-            className="flex gap-4 mb-5 w-full text-left group cursor-pointer"
-          >
-            {coverArt ? (
-              <ImageWithFallback
-                src={coverArt}
-                alt={itemName}
-                className="w-20 h-20 rounded-lg object-cover shrink-0 border border-gray-700/50 group-hover:border-[#1DB954]/50 transition-colors"
-              />
-            ) : (
-              <div className="w-20 h-20 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-gray-700/50">
-                {review.review_type === 'song' ? (
-                  <Music className="w-8 h-8 text-gray-500" />
+          <div className="relative z-10">
+            {/* User header */}
+            <div className="flex items-center gap-3 mb-6">
+              <button
+                onClick={() => router.push(`/user/${review.user.username}`)}
+                className="shrink-0"
+              >
+                {review.user.profile_picture_url ? (
+                  <ImageWithFallback
+                    src={review.user.profile_picture_url}
+                    alt={review.user.username}
+                    className="w-11 h-11 rounded-full object-cover ring-2 ring-gray-700 hover:ring-[#1DB954] transition-all shadow-md"
+                  />
                 ) : (
-                  <Disc3 className="w-8 h-8 text-gray-500" />
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center ring-2 ring-gray-700 hover:ring-[#1DB954] transition-all shadow-md">
+                    <span className="text-white font-bold text-sm">
+                      {review.user.username.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
                 )}
-              </div>
-            )}
-            <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <h3 className="text-white font-semibold text-lg group-hover:text-[#1DB954] transition-colors truncate">
-                {itemName}
-              </h3>
-              <p className="text-gray-400 text-sm">{artistName}</p>
-              {review.rating != null && (
-                <div className="mt-2">
-                  <VinylRating rating={review.rating} size="md" />
+              </button>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => router.push(`/user/${review.user.username}`)}
+                    className="text-white font-medium hover:text-[#1DB954] transition-colors truncate"
+                  >
+                    {review.user.name || review.user.username}
+                  </button>
+                  <span className="text-gray-500 text-xs shrink-0">•</span>
+                  <span className="text-gray-500 text-xs shrink-0">{timeAgo}</span>
                 </div>
-              )}
+                <p className="text-gray-500 text-xs">@{review.user.username}</p>
+              </div>
+              {/* Review type badge */}
+              <div
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${
+                  review.review_type === 'song'
+                    ? 'bg-purple-500/15 text-purple-400 border border-purple-500/20'
+                    : 'bg-blue-500/15 text-blue-400 border border-blue-500/20'
+                }`}
+              >
+                {review.review_type === 'song' ? (
+                  <Music className="w-3 h-3" />
+                ) : (
+                  <Disc3 className="w-3 h-3" />
+                )}
+                {review.review_type === 'song' ? 'Song' : 'Album'}
+              </div>
+            </div>
+
+            {/* Media info */}
+            <div
+              onClick={() => router.push(entityLink)}
+              className="flex gap-5 mb-6 w-full text-left group/media cursor-pointer"
+            >
+              <div className="relative shrink-0">
+                  <div className="absolute inset-0 bg-[#1DB954]/20 blur-xl rounded-full scale-90 group-hover/media:bg-[#1DB954]/30 group-hover/media:scale-100 transition-all duration-500"></div>
+                  {coverArt ? (
+                    <ImageWithFallback
+                      src={coverArt}
+                      alt={itemName}
+                      className="relative w-28 h-28 rounded-xl object-cover border border-white/10 shadow-2xl"
+                    />
+                  ) : (
+                    <div className="relative w-28 h-28 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center border border-white/5 shadow-inner">
+                      {review.review_type === 'song' ? (
+                        <Music className="w-10 h-10 text-gray-600" />
+                      ) : (
+                        <Disc3 className="w-10 h-10 text-gray-600" />
+                      )}
+                    </div>
+                  )}
+              </div>
+              
+              <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <div className="flex justify-between items-start gap-4">
+                  <div className="min-w-0">
+                    <h3 className="text-white font-bold text-xl md:text-2xl tracking-tight mb-0.5 group-hover/media:text-[#1DB954] transition-colors duration-300 truncate">
+                      {itemName}
+                    </h3>
+                    <p className="text-gray-400 font-medium text-[15px] truncate">{artistName}</p>
+                    
+                  </div>
+
+                  {/* Vinyl Rating Badge */}
+                  {review.rating != null && (
+                      <div className="flex flex-col items-end shrink-0 mt-2 md:mt-0">
+                          <div className="flex items-center bg-black/40 px-3 py-2 rounded-lg border border-white/5 backdrop-blur-md shadow-inner">
+                              <VinylRating rating={Number(review.rating)} size="lg" />
+                          </div>
+                      </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Full review text */}
+            {review.review && (
+              <p className="text-gray-200/90 text-[16px] leading-relaxed mb-4 whitespace-pre-wrap font-medium">
+                {review.review}
+              </p>
+            )}
+
+            {/* Edited indicator */}
+            {review.edited_at && (
+              <p className="text-gray-500 text-[11px] mb-4 italic tracking-wide">edited</p>
+            )}
+
+            {/* Comments section — always expanded on the review page */}
+            <div className="w-full mt-2">
+              <ReviewComments reviewId={review.id} userId={userId} defaultExpanded={true} />
             </div>
           </div>
-
-          {/* Full review text */}
-          {review.review && (
-            <p className="text-gray-200 text-[15px] leading-relaxed mb-4 whitespace-pre-wrap">
-              {review.review}
-            </p>
-          )}
-
-          {/* Edited indicator */}
-          {review.edited_at && (
-            <p className="text-gray-600 text-xs mb-4 italic">edited</p>
-          )}
-
-          {/* Comments section — always expanded on the review page */}
-          <ReviewComments reviewId={review.id} userId={userId} defaultExpanded={true} />
         </div>
       </div>
     </div>

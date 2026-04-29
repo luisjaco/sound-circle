@@ -201,29 +201,21 @@ export default function ReviewComments({ reviewId, userId, defaultExpanded = fal
     };
 
     return (
-        <div className="mt-3 pt-3 border-t border-gray-800/50">
+        <div className="mt-4 pt-3 border-t border-white/5 relative">
 
             {/* Action bar — always visible */}
-            <div className="flex items-center w-full py-1">
-                {/* Column 1: Expand/collapse replies toggle */}
-                <div className="flex-1 flex justify-center border-r border-gray-800">
-                    <button
-                        onClick={() => setExpanded(!expanded)}
-                        className={`flex items-center gap-1.5 text-xs font-medium transition-colors ${hasComments ? 'text-gray-500 hover:text-[#1DB954]' : 'text-gray-700 cursor-not-allowed'}`}
-                        disabled={!hasComments}
-                    >
-                        <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
-                        {commentCount !== null ? commentCount : 0} {commentCount === 1 ? 'reply' : 'replies'}
-                    </button>
+            <div className="flex items-center w-full bg-black/20 rounded-xl p-1 border border-white/5 backdrop-blur-md shadow-inner">
+                {/* Column 1: Upvote button */}
+                <div className="flex-1 flex justify-center relative">
+                    <div className="w-full flex justify-center py-1.5 rounded-lg hover:bg-[#1DB954]/10 transition-colors duration-300">
+                        <UpvoteButton postId={reviewId} userId={userId} />
+                    </div>
+                    {/* Subtle separator */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-4 bg-white/10"></div>
                 </div>
 
-                {/* Column 2: Upvote button */}
-                <div className="flex-1 flex justify-center border-r border-gray-800">
-                    <UpvoteButton postId={reviewId} userId={userId} />
-                </div>
-
-                {/* Column 3: Add comment button */}
-                <div className="flex-1 flex justify-center">
+                {/* Column 2: Add comment button */}
+                <div className="flex-1 flex justify-center relative">
                     <button
                         onClick={() => {
                             if (!userId) {
@@ -233,10 +225,28 @@ export default function ReviewComments({ reviewId, userId, defaultExpanded = fal
                             setShowInput(!showInput);
                             if (!showInput) setExpanded(true);
                         }}
-                        className="flex items-center gap-1.5 text-gray-500 hover:text-[#1DB954] text-xs font-medium transition-colors"
+                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-300 ${showInput ? 'text-[#1DB954] bg-[#1DB954]/10' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                     >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        {showInput ? 'Cancel' : 'Add comment'}
+                        {showInput ? (
+                            <X className="w-4 h-4" />
+                        ) : (
+                            <MessageCircle className="w-4 h-4" />
+                        )}
+                        {showInput ? 'CANCEL' : 'COMMENT'}
+                    </button>
+                    {/* Subtle separator */}
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 w-px h-4 bg-white/10"></div>
+                </div>
+
+                {/* Column 3: Expand/collapse replies toggle */}
+                <div className="flex-1 flex justify-center">
+                    <button
+                        onClick={() => setExpanded(!expanded)}
+                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all duration-300 ${hasComments ? 'text-gray-400 hover:text-[#1DB954] hover:bg-[#1DB954]/10' : 'text-gray-700 cursor-not-allowed'}`}
+                        disabled={!hasComments}
+                    >
+                        <ChevronDown className={`w-4 h-4 transition-transform duration-300 ${expanded ? 'rotate-180 text-[#1DB954]' : ''}`} />
+                        {commentCount !== null ? commentCount : 0} {commentCount === 1 ? 'REPLY' : 'REPLIES'}
                     </button>
                 </div>
             </div>
