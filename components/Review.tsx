@@ -3,6 +3,7 @@ import { UnifiedReview } from "@/lib/types/review";
 import Link from "next/link";
 import { ImageWithFallback } from "./img/ImageWithFallback";
 import { VinylRating } from "./vinyl-rating";
+import ReviewComments from "./ReviewComments";
 import { Music, Disc3 } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
@@ -25,9 +26,11 @@ function getTimeAgo(dateStr: string): string {
 
 export default function FeedReviewCard({
     review,
-    showUser }: {
+    showUser,
+    userId }: {
         review: UnifiedReview,
-        showUser: boolean
+        showUser: boolean,
+        userId?: string | null
     }) {
 
     const router = useRouter();
@@ -140,29 +143,30 @@ export default function FeedReviewCard({
 
 
     return (
-
         <div 
             onClick={() => router.push(`/review/${review.id}`)}
-            className='flex border border-gray-800/50 bg-[#181818] rounded-xl p-5 hover:bg-[#1f1f1f] transition-all duration-200 cursor-pointer'>
-            <div>
+            className='flex flex-col border border-gray-800/50 bg-[#181818] rounded-xl p-5 hover:bg-[#1f1f1f] transition-all duration-200 cursor-pointer'>
+            
+            {showUser && (userHeader)}
 
-                {showUser && (userHeader)}
+            {/* Song/Album info */}
+            {mediaInfo}
 
-                {/* Song/Album info */}
-                {mediaInfo}
+            {/* Review text */}
+            {review.review && (
+                <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
+                    {review.review}
+                </p>
+            )}
 
-                {/* Review text */}
-                {review.review && (
-                    <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
-                        {review.review}
-                    </p>
-                )}
+            {/* Edited indicator */}
+            {review.edited_at && (
+                <p className="text-gray-600 text-xs mt-2 italic">edited</p>
+            )}
 
-                {/* Edited indicator */}
-                {review.edited_at && (
-                    <p className="text-gray-600 text-xs mt-2 italic">edited</p>
-                )}
-
+            {/* Comments section taking full width */}
+            <div className="w-full mt-1" onClick={(e) => e.stopPropagation()}>
+                <ReviewComments reviewId={review.id} userId={userId ?? null} />
             </div>
         </div>
     );

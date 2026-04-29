@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { Music, Disc3, Loader2 } from 'lucide-react';
 import { UnifiedReview } from '@/lib/types/review';
 import Review from "@/components/Review";
+import { createClient } from '@/lib/supabase/browser';
 
 type ProfileReviewFilter = 'all' | 'songs' | 'albums';
 
@@ -15,6 +16,17 @@ export default function ReviewsPage() {
     const [reviews, setReviews] = useState<UnifiedReview[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<ProfileReviewFilter>('all');
+    const [userId, setUserId] = useState<string | null>(null);
+
+    // grab logged-in user for comment functionality
+    useEffect(() => {
+        async function getUser() {
+            const supabase = createClient();
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) setUserId(user.id);
+        }
+        getUser();
+    }, []);
 
     useEffect(() => {
         async function fetchReviews() {
@@ -99,6 +111,7 @@ export default function ReviewsPage() {
                                 key={`${review.review_type}-${review.id}`}
                                 review={review}
                                 showUser={true}
+                                userId={userId}
                             />
                         ))}
                     </div>

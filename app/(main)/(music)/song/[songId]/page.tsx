@@ -2,6 +2,7 @@
 import { Music, Send, X } from 'lucide-react';
 import { VinylRating } from '@/components/vinyl-rating';
 import { ImageWithFallback } from '@/components/img/ImageWithFallback';
+import ReviewComments from '@/components/ReviewComments';
 import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
@@ -311,6 +312,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
                   {r.edited_at && (
                     <p className="text-gray-600 text-xs mt-2 italic">edited</p>
                   )}
+                  <ReviewComments reviewId={r.id} userId={userId} />
                 </div>
               ))
             ) : (
