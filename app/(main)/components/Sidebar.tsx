@@ -3,7 +3,7 @@
 import { notFound, useRouter } from 'next/navigation';
 import { useState, useContext } from 'react';
 import { AsideContext } from '../../../components/AsideContext';
-import { ClockFading, Disc3, Heart, ListVideo, LogOut, SettingsIcon, } from 'lucide-react';
+import { ClockFading, Disc3, Heart, ListVideo, LogOut, SettingsIcon, Shield,} from 'lucide-react';
 import ProfilePicture from '@/components/img/ProfilePicture';
 import { createClient } from '@/lib/supabase/browser';
 import { useMusicKit } from '@/components/providers/MusicKitProvider';
@@ -11,11 +11,13 @@ import { useMusicKit } from '@/components/providers/MusicKitProvider';
 type SidebarProps = {
     username: string,
     profilePictureUrl?: string,
+    isModerator: boolean,
 }
 
 export default function SideBar({
     username,
-    profilePictureUrl
+    profilePictureUrl,
+    isModerator
 }: SidebarProps) {
 
     const MusicKit = useMusicKit();
@@ -102,6 +104,16 @@ export default function SideBar({
                 <SettingsIcon className="w-11 h-11" />
                 <p>Settings</p>
             </div>
+
+            {isModerator && (
+                <div
+                    className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
+                    onClick={() => push(`/moderation`)}
+                >
+                    <Shield className="w-11 h-11" />
+                    <p>Moderation</p>
+                </div>
+            )}
 
             <div
                 className="flex border-b border-gray-700 w-full gap-8 text-lg items-center pt-3 pb-4 hover:text-[#1DB954] transition-colors cursor-pointer"
