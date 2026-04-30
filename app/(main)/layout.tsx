@@ -20,6 +20,8 @@ export default function MainLayout({ children }: Props) {
     const [username, setUsername] = useState('');
     const [profilePictureUrl, setProfilePictureUrl] = useState('');
 
+    const [isModerator, setIsModerator] = useState(false);
+
     useEffect(() => {
         let isMounted = true;
 
@@ -36,9 +38,18 @@ export default function MainLayout({ children }: Props) {
                 .single();
 
             if (!profile) notFound();
+            
+            const { data: modData } = await supabase
+                .from('moderator')
+                .select('id')
+                .eq('user_id', user.id)
+                .maybeSingle();
 
-            setUsername(profile.username);
-            setProfilePictureUrl(profile.profile_picture_url);
+            if (isMounted) {
+                setUsername(profile.username);
+                setProfilePictureUrl(profile.profile_picture_url);
+                setIsModerator(!!modData);
+            }
         }
 
         grabCurrentUser();
@@ -63,6 +74,7 @@ export default function MainLayout({ children }: Props) {
                 <SideBar
                     username={username}
                     profilePictureUrl={profilePictureUrl}
+                    isModerator={isModerator}
                 />
                 <ListeningHistory />
                 <Suspense>

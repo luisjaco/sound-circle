@@ -22,32 +22,11 @@ export async function GET() {
     if (userError || !currentUser) {
         return Response.json({ error: 'User not found' }, { status: 404 });
     }
-
-    const { data: genreData, error: genreError } = await supabase
-        .from('user_favorite_genres')
-        .select(`
-            genre_id,
-            genres (
-                id,
-                genre
-            )
-        `)
-        .eq('user_id', user.id);
-    if (genreError) {
-        return Response.json({ error: 'Failed to fetch favorite genres' }, { status: 500 });
-    }
-
-    const favoriteGenres = (genreData || [])
-        .map((row: any) => row.genres)
-        .filter(Boolean);
     
-    return Response.json({
-        user: currentUser,
-        favoriteGenres
-    });
+    return Response.json({ user: currentUser });
 }
 
-// handles updating username, name, bio, location, profile picture, and favorite genres
+// handles updating username, name, bio, location, and profile picture
 export async function PATCH(req: Request) {
     const supabase = await createClient();
 
@@ -74,12 +53,6 @@ export async function PATCH(req: Request) {
 
     const name = formData.get('name') as string;
     const username = formData.get('username') as string;
-    let favoriteGenres: any;
-    try {
-        favoriteGenres = JSON.parse(formData.get('favoriteGenres') as string);
-    } catch (error) {
-        return Response.json({ error: 'Invalid favorite genres format' }, { status: 400 });
-    }
     const bio = formData.get('bio') as string | null;
     const city = formData.get('city') as string | null;
     const state = formData.get('state') as string | null;
@@ -161,16 +134,6 @@ export async function PATCH(req: Request) {
         return Response.json({ error: 'Name is required' }, { status: 400 });
     }
 
-    // validate favorite genres
-    if (favoriteGenres === undefined || !Array.isArray(favoriteGenres) || favoriteGenres.length === 0) {
-        return Response.json({ error: 'At least one favorite genre is required' }, { status: 400 });
-    }
-    for (const genre of favoriteGenres) {
-        if(!genre.id) {
-            return Response.json({ error: 'Invalid genre object' }, { status: 400 });
-        }
-    }
-
     // keep current image unless a new one is uploaded
     let imagePath = currentUser.profile_picture_url ?? "";
 
@@ -221,31 +184,6 @@ export async function PATCH(req: Request) {
     if (updateError) {
         console.error(updateError);
         return Response.json({ error: 'Failed to update user profile' }, { status: 500 });
-    }
-
-    // update favorite genres (delete old -> insert new)
-    const { error: deleteGenresError } = await supabase        
-        .from('user_favorite_genres')
-        .delete()
-        .eq('user_id', user.id);
-    
-    if (deleteGenresError) {
-        console.error(deleteGenresError);
-        return Response.json({ error: 'Failed to clear favorite genres' }, { status: 500 });
-    }
-
-    const genreRows = favoriteGenres.map((genre: any) => ({
-        user_id: user.id,
-        genre_id: genre.id
-    }));
-
-    const { error: genreError } = await supabase
-        .from('user_favorite_genres')
-        .insert(genreRows);
-
-    if (genreError) {
-        console.error(genreError);
-        return Response.json({ error: 'Failed to update favorite genres' }, { status: 500 });
     }
 
     return Response.json({ message: 'Profile updated successfully' });
