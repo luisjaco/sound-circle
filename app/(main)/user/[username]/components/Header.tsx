@@ -133,7 +133,7 @@ export default function Header({
                         }${state ? state : ""
                         }`}
                 </p>
-                <p className="text-gray-400 mt-3 text-md whitespace-pre font-mono">
+                <p className="text-gray-400 mt-3 text-md whitespace-pre font-mono w-md h-md overflow-hidden">
                     {bio}
                 </p>
             </div>

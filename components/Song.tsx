@@ -50,12 +50,24 @@ export default function Song({
 
             // only in this situation is the listening history/sidebar open. therefore we only close
             // here.
+            unlockScroll();
             setSidebarOpen(false);
             setListeningHistoryOpen(false);
             router.push(`/song/${id}`)
         }
     }
 
+    function unlockScroll() {
+        const scrollY = Math.abs(parseInt(document.body.style.top || "0"));
+
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.left = "";
+        document.body.style.right = "";
+        document.body.style.overflow = "";
+
+        window.scrollTo(0, scrollY);
+    }
 
     const content = (
         <>
@@ -120,7 +132,7 @@ export default function Song({
 
     return (
         <>
-            {(id || isrc ) ? (song) : (blank)}
+            {(id || isrc) ? (song) : (blank)}
             <p hidden={!error} className='text-red-500 text-2xs'>There was an error retrieving this song.</p>
         </>
     );

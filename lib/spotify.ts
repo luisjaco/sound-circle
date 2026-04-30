@@ -69,3 +69,25 @@ export async function spotifyFetch(url: string, options: RequestInit = {}, retry
         }
     });
 }
+
+export async function getSpotifyTrackIdByISRC(isrc: string): Promise<string | null> {
+    try {
+        const res = await spotifyFetch(
+            `https://api.spotify.com/v1/search?q=isrc:${encodeURIComponent(isrc)}&type=track&limit=1`
+        );
+
+        if (!res.ok) {
+            console.error(`search for track with ISRC (${isrc}) failed.`)
+            // non-auth errors (rate limit, bad request, etc.)
+            return null;
+        }
+
+        const data = await res.json();
+        const item = data?.tracks?.items?.[0];
+
+        return data?.tracks?.items?.[0] ?? null;
+    } catch (err) {
+        // covers token issues, network errors, etc.
+        return null;
+    }
+}

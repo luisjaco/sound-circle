@@ -3,6 +3,7 @@ import 'server-only';
 import supabase from '../admin';
 import { lookupByISRCComplete, searchRecordingComplete } from '@/lib/musicbrainz';
 import { findRelationalData } from './artists';
+import { getSpotifyTrackIdByISRC } from '@/lib/spotify';
 
 export async function insertSong(isrc: string, artistName: string, songName: string) {
     // find song data from music brainz
@@ -126,3 +127,4 @@ export async function insertSong(isrc: string, artistName: string, songName: str
 
     return data;
 }
+

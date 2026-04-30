@@ -346,7 +346,7 @@ export async function getTopSongs(supabase: SupabaseClient, userId: string, limi
 export async function getSongComponentData(songs: SBSong[]) {
     if (!(songs.length > 0)) return [];
 
-    const spotifyIds = songs.map((x) => x.songs.spotify_id || '');
+    const spotifyIds = songs.map((x) => x.songs.spotify_id || '').filter((x) => x.length > 0);
 
     let res = ((songs.length === 1) ? await getSong(spotifyIds[0]) : await getSongs(spotifyIds));
     if (!res) return [];

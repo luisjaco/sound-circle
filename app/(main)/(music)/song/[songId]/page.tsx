@@ -137,7 +137,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
         
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="flex gap-6 mb-6">
-            <div className="w-40 h-40 rounded-lg bg-[#181818] flex-shrink-0" />
+            <div className="w-40 h-40 rounded-lg bg-[#181818] shrink-0" />
             <div className="flex-1 flex flex-col justify-center">
               <div className="h-8 bg-[#181818] rounded w-3/4 mb-4" />
               <div className="h-5 bg-[#181818] rounded w-1/2 mb-2" />
@@ -164,10 +164,10 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
             <ImageWithFallback
               src={songData.imageUrl}
               alt={songData.name}
-              className="w-40 h-40 rounded-lg object-cover shadow-2xl flex-shrink-0"
+              className="w-40 h-40 rounded-lg object-cover shadow-2xl shrink-0"
             />
           ) : (
-            <div className="w-40 h-40 rounded-lg bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center flex-shrink-0 shadow-2xl">
+            <div className="w-40 h-40 rounded-lg bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 shadow-2xl">
               <Music className="w-12 h-12 text-gray-500" />
             </div>
           )}
@@ -255,7 +255,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
                   value={reviewText}
                   onChange={(e) => setReviewText(e.target.value)}
                   placeholder="What did you think of this song?"
-                  className="w-full bg-[#0a0a0a] border border-gray-700 rounded-lg p-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#1DB954] transition-colors resize-none min-h-[120px]"
+                  className="w-full bg-[#0a0a0a] border border-gray-700 rounded-lg p-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-[#1DB954] transition-colors resize-none min-h-30"
                 />
               </div>
               <div className="flex items-center justify-end gap-3">
@@ -300,7 +300,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center ring-2 ring-gray-700">
+                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center ring-2 ring-gray-700">
                           <span className="text-white font-bold text-xs">
                             {(r.user_id as string).charAt(0).toUpperCase()}
                           </span>
