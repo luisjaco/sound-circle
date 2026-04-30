@@ -32,7 +32,7 @@ export default function FriendsContent({
     const [mode, setMode] = useState<'FOLLOWERS' | 'FOLLOWING'>('FOLLOWERS');
     const searchParams = useSearchParams(); // set mode for content to start in
     const m = searchParams?.get('m'); // as 'followers' or 'following', or null
-    if (m && m === 'following') setMode('FOLLOWING'); // default to following so no check needed.
+    if (m && m === 'following') setMode('FOLLOWING'); // default to followers so no check needed.
 
     const tabs = (
         <div className="flex w-2xl h-20 gap-1 bg-[#111] justify-around rounded-lg p-1 border border-gray-800/50">

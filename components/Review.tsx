@@ -3,6 +3,7 @@ import { UnifiedReview } from "@/lib/types/review";
 import Link from "next/link";
 import { ImageWithFallback } from "./img/ImageWithFallback";
 import { VinylRating } from "./vinyl-rating";
+import ReviewComments from "./ReviewComments";
 import { Music, Disc3, Flag } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -135,9 +136,11 @@ function FlagModal({
 
 export default function FeedReviewCard({
     review,
-    showUser }: {
+    showUser,
+    userId }: {
         review: UnifiedReview,
-        showUser: boolean
+        showUser: boolean,
+        userId?: string | null
     }) {
 
     const router = useRouter();
@@ -254,38 +257,55 @@ export default function FeedReviewCard({
     )
 
     const mediaInfo = (
-        <div className="flex gap-4 mb-3">
+        <div className="flex gap-5 mb-4 relative z-10">
             {review.review_type === "song" && review.song?.cover_art_url ? (
-                <ImageWithFallback
-                    src={review.song.cover_art_url}
-                    alt={itemName}
-                    className="w-16 h-16 rounded-lg object-cover shrink-0 border border-gray-700/50"
-                />
+                <div className="relative shrink-0">
+                    <div className="absolute inset-0 bg-[#1DB954]/20 blur-xl rounded-full scale-90 group-hover:bg-[#1DB954]/30 group-hover:scale-100 transition-all duration-500"></div>
+                    <ImageWithFallback
+                        src={review.song.cover_art_url}
+                        alt={itemName}
+                        className="relative w-24 h-24 md:w-28 md:h-28 rounded-xl object-cover border border-white/10 shadow-2xl"
+                    />
+                </div>
             ) : review.review_type === "album" && review.album?.cover_art_url ? (
-                <ImageWithFallback
-                    src={review.album.cover_art_url}
-                    alt={itemName}
-                    className="w-16 h-16 rounded-lg object-cover shrink-0 border border-gray-700/50"
-                />
+                <div className="relative shrink-0">
+                    <div className="absolute inset-0 bg-[#1DB954]/20 blur-xl rounded-full scale-90 group-hover:bg-[#1DB954]/30 group-hover:scale-100 transition-all duration-500"></div>
+                    <ImageWithFallback
+                        src={review.album.cover_art_url}
+                        alt={itemName}
+                        className="relative w-24 h-24 md:w-28 md:h-28 rounded-xl object-cover border border-white/10 shadow-2xl"
+                    />
+                </div>
             ) : (
-                <div className="w-16 h-16 rounded-lg bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-gray-700/50">
+                <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-white/5 shadow-inner">
                     {review.review_type === "song" ? (
-                        <Music className="w-7 h-7 text-gray-500" />
+                        <Music className="w-8 h-8 text-gray-600" />
                     ) : (
-                        <Disc3 className="w-7 h-7 text-gray-500" />
+                        <Disc3 className="w-8 h-8 text-gray-600" />
                     )}
                 </div>
             )}
-            <div className="flex-1 min-w-0">
-                <h3 className="text-white font-semibold truncate text-[15px]">
-                    {itemName}
-                </h3>
-                <p className="text-gray-400 text-sm">{artistName}</p>
-                {review.rating != null && (
-                    <div className="mt-1.5">
-                        <VinylRating rating={review.rating} size="sm" />
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+                <div className="flex justify-between items-start gap-4">
+                    <div className="min-w-0">
+                        <h3 className="text-white font-bold truncate text-[17px] md:text-xl tracking-tight mb-0.5 group-hover:text-[#1DB954] transition-colors duration-300">
+                            {itemName}
+                        </h3>
+                        <p className="text-gray-400 font-medium text-sm md:text-[15px] truncate">
+                            {artistName}
+                        </p>
+                        
                     </div>
-                )}
+                    
+                    {/* Vinyl Rating Badge */}
+                    {review.rating != null && (
+                        <div className="flex flex-col items-end shrink-0">
+                            <div className="flex items-center bg-black/40 px-2.5 py-1.5 rounded-lg border border-white/5 backdrop-blur-md shadow-inner">
+                                <VinylRating rating={review.rating} size="md" />
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     )
@@ -302,16 +322,19 @@ export default function FeedReviewCard({
                     submitSuccess={submitSuccess}
                 />
             )}
-
             <div 
                 onClick={() => router.push(`/review/${review.id}`)}
-                className='flex border border-gray-800/50 bg-[#181818] rounded-xl p-5 hover:bg-[#1f1f1f] transition-all duration-200 cursor-pointer'>
-                <div className="w-full">
-
+                className='relative flex flex-col border border-white/5 bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-5 hover:bg-[#151515] transition-all duration-300 cursor-pointer overflow-hidden group shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'>
+                
+                {/* Atmospheric Background Glow */}
+                <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#1DB954]/5 rounded-full blur-[80px] group-hover:bg-[#1DB954]/10 transition-colors duration-700 pointer-events-none z-0" />
+                <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700 pointer-events-none z-0" />
+                
+                <div className="relative z-10">
                     {showUser && (userHeader)}
 
-                    {/* Song/Album info */}
-                    {mediaInfo}
+                        {/* Song/Album info */}
+                        {mediaInfo}
 
                     {/* Review text */}
                     {review.review && (
@@ -320,7 +343,7 @@ export default function FeedReviewCard({
                         </p>
                     )}
 
-                    {/* Edited indicator + flag button */}
+                    {/* Edited indicator */}
                     <div className="flex items-center justify-between mt-2">
                         {review.edited_at ? (
                             <p className="text-gray-600 text-xs italic">edited</p>
@@ -333,6 +356,10 @@ export default function FeedReviewCard({
                         >
                             <Flag className="w-3.5 h-3.5" />
                         </button>
+                    </div>
+                    {/* Comments section taking full width */}
+                    <div className="w-full mt-2" onClick={(e) => e.stopPropagation()}>
+                        <ReviewComments reviewId={review.id} userId={userId ?? null} />
                     </div>
                 </div>
             </div>

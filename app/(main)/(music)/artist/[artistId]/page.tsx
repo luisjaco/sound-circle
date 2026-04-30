@@ -35,8 +35,8 @@ export default function ArtistPage({ params }: { params: Promise<{ artistId: str
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20 animate-pulse">
-        <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10 h-14" />
+      <div className="min-h-screen bg-black pt-15 pb-20 animate-pulse">
+        
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="text-center mb-6">
             <div className="w-48 h-48 rounded-full bg-[#181818] mx-auto mb-6" />

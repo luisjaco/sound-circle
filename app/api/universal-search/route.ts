@@ -13,6 +13,9 @@ import { searchSpotifyImages } from '@/lib/spotify/search';
  * NO database inserts happen here — results from MusicBrainz are returned
  * with source:'musicbrainz' so the frontend can insert on click via
  * POST /api/universal-search/insert.
+ *
+ * Performance: All Supabase queries, MusicBrainz queries, and Spotify image
+ * fetches run in parallel. Results are cached for 30s.
  */
 
 interface SearchResult {
@@ -26,15 +29,41 @@ interface SearchResult {
     artistMbId?: string | null;   // artist MB ID for albums/songs from MB
 }
 
-// rate limiter for musicbrainz
-let lastMBRequest = 0;
-async function mbFetch(url: string): Promise<Response> {
-    const now = Date.now();
-    const elapsed = now - lastMBRequest;
-    if (elapsed < 1100) {
-        await new Promise((r) => setTimeout(r, 1100 - elapsed));
+// ─── In-memory search cache (30s TTL) ───────────────────────────────────────
+
+interface CacheEntry {
+    data: any;
+    timestamp: number;
+}
+
+const CACHE_TTL_MS = 30_000; // 30 seconds
+const searchCache = new Map<string, CacheEntry>();
+
+function getCached(key: string): any | null {
+    const entry = searchCache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+        searchCache.delete(key);
+        return null;
     }
-    lastMBRequest = Date.now();
+    return entry.data;
+}
+
+function setCache(key: string, data: any): void {
+    searchCache.set(key, { data, timestamp: Date.now() });
+
+    // Async cleanup: evict stale entries if cache grows large
+    if (searchCache.size > 200) {
+        const now = Date.now();
+        for (const [k, v] of searchCache) {
+            if (now - v.timestamp > CACHE_TTL_MS) searchCache.delete(k);
+        }
+    }
+}
+
+// ─── MusicBrainz fetch (no rate-limit delay for parallel search) ────────────
+
+async function mbFetchDirect(url: string): Promise<Response> {
     return fetch(url, {
         headers: {
             'User-Agent': USER_AGENT,
@@ -42,6 +71,11 @@ async function mbFetch(url: string): Promise<Response> {
         },
     });
 }
+
+// ─── Reduced limits for faster responses ────────────────────────────────────
+
+const SUPABASE_LIMIT = 5;
+const MB_LIMIT = 5;
 
 export async function GET(request: NextRequest) {
     try {
@@ -55,14 +89,70 @@ export async function GET(request: NextRequest) {
         }
 
         const q = query.trim();
+        const cacheKey = q.toLowerCase();
+
+        // Check cache first
+        const cached = getCached(cacheKey);
+        if (cached) {
+            return NextResponse.json(cached);
+        }
+
         const supabaseClient = await createClient();
 
-        // 1. USERS (Supabase only) 
-        const { data: usersData } = await supabaseClient
-            .from('users')
-            .select('id, name, username, profile_picture_url')
-            .or(`username.ilike.%${q}%,name.ilike.%${q}%`)
-            .limit(10);
+        // ─── Phase 1: Fire ALL queries in parallel ──────────────────────
+
+        const [
+            usersResult,
+            sbArtistsResult,
+            sbAlbumsResult,
+            sbSongsResult,
+            mbArtistsResult,
+            mbAlbumsResult,
+            mbSongsResult,
+            spotifyResult,
+        ] = await Promise.allSettled([
+            // Supabase queries
+            supabaseClient
+                .from('users')
+                .select('id, name, username, profile_picture_url')
+                .or(`username.ilike.%${q}%,name.ilike.%${q}%`)
+                .limit(SUPABASE_LIMIT),
+
+            supabaseClient
+                .from('artists')
+                .select('id, name, musicbrainz_id')
+                .ilike('name', `%${q}%`)
+                .limit(SUPABASE_LIMIT),
+
+            supabaseClient
+                .from('albums')
+                .select('id, name, musicbrainz_id, artist_id, artists!artist_id(name)')
+                .ilike('name', `%${q}%`)
+                .limit(SUPABASE_LIMIT),
+
+            supabaseClient
+                .from('songs')
+                .select('id, name, musicbrainz_id, artist_id, artists!artist_id(name)')
+                .ilike('name', `%${q}%`)
+                .limit(SUPABASE_LIMIT),
+
+            // MusicBrainz queries (all fire in parallel — no serial rate limiting)
+            searchMBArtists(q, MB_LIMIT),
+            searchMBAlbums(q, MB_LIMIT),
+            searchMBSongs(q, MB_LIMIT),
+
+            // Spotify images (fires in parallel with everything else)
+            searchSpotifyImages(q),
+        ]);
+
+        // ─── Phase 2: Extract Supabase results ──────────────────────────
+
+        const usersData = usersResult.status === 'fulfilled' ? usersResult.value.data : [];
+        const sbArtists = sbArtistsResult.status === 'fulfilled' ? sbArtistsResult.value.data : [];
+        const sbAlbums = sbAlbumsResult.status === 'fulfilled' ? sbAlbumsResult.value.data : [];
+        const sbSongs = sbSongsResult.status === 'fulfilled' ? sbSongsResult.value.data : [];
+
+        // ─── Users ──────────────────────────────────────────────────────
 
         const users: SearchResult[] = (usersData || []).map((u: any) => ({
             type: 'user' as const,
@@ -73,12 +163,7 @@ export async function GET(request: NextRequest) {
             source: 'supabase' as const,
         }));
 
-        // 2. ARTISTS — Supabase first, then MusicBrainz (no inserts)
-        const { data: sbArtists } = await supabaseClient
-            .from('artists')
-            .select('id, name, musicbrainz_id')
-            .ilike('name', `%${q}%`)
-            .limit(10);
+        // ─── Artists ────────────────────────────────────────────────────
 
         let artists: SearchResult[] = (sbArtists || []).map((a: any) => ({
             type: 'artist' as const,
@@ -90,12 +175,12 @@ export async function GET(request: NextRequest) {
         }));
 
         if (artists.length < 5) {
-            const mbArtists = await searchMBArtists(q, 10);
+            const mbArtists = mbArtistsResult.status === 'fulfilled' ? mbArtistsResult.value : [];
             const existingMBIds = new Set((sbArtists || []).map((a: any) => a.musicbrainz_id));
 
             for (const mbArtist of mbArtists) {
                 if (existingMBIds.has(mbArtist.id)) continue;
-                if (artists.length >= 10) break;
+                if (artists.length >= SUPABASE_LIMIT) break;
                 if (['[unknown]', 'various artists', '[no artist]'].includes(mbArtist.name.toLowerCase())) continue;
 
                 artists.push({
@@ -111,12 +196,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // 3. ALBUMS — Supabase first, then MusicBrainz (no inserts)
-        const { data: sbAlbums } = await supabaseClient
-            .from('albums')
-            .select('id, name, musicbrainz_id, artist_id, artists!artist_id(name)')
-            .ilike('name', `%${q}%`)
-            .limit(10);
+        // ─── Albums ─────────────────────────────────────────────────────
 
         let albums: SearchResult[] = (sbAlbums || []).map((a: any) => ({
             type: 'album' as const,
@@ -128,12 +208,12 @@ export async function GET(request: NextRequest) {
         }));
 
         if (albums.length < 5) {
-            const mbAlbums = await searchMBAlbums(q, 10);
+            const mbAlbums = mbAlbumsResult.status === 'fulfilled' ? mbAlbumsResult.value : [];
             const existingMBIds = new Set((sbAlbums || []).map((a: any) => a.musicbrainz_id));
 
             for (const mbAlbum of mbAlbums) {
                 if (existingMBIds.has(mbAlbum.id)) continue;
-                if (albums.length >= 10) break;
+                if (albums.length >= SUPABASE_LIMIT) break;
 
                 albums.push({
                     type: 'album',
@@ -149,12 +229,7 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // 4. SONGS — Supabase first, then MusicBrainz (no inserts)
-        const { data: sbSongs } = await supabaseClient
-            .from('songs')
-            .select('id, name, musicbrainz_id, artist_id, artists!artist_id(name)')
-            .ilike('name', `%${q}%`)
-            .limit(10);
+        // ─── Songs ──────────────────────────────────────────────────────
 
         let songs: SearchResult[] = (sbSongs || []).map((s: any) => ({
             type: 'song' as const,
@@ -166,12 +241,12 @@ export async function GET(request: NextRequest) {
         }));
 
         if (songs.length < 5) {
-            const mbSongs = await searchMBSongs(q, 10);
+            const mbSongs = mbSongsResult.status === 'fulfilled' ? mbSongsResult.value : [];
             const existingMBIds = new Set((sbSongs || []).map((s: any) => s.musicbrainz_id));
 
             for (const mbSong of mbSongs) {
                 if (existingMBIds.has(mbSong.id)) continue;
-                if (songs.length >= 10) break;
+                if (songs.length >= SUPABASE_LIMIT) break;
 
                 songs.push({
                     type: 'song',
@@ -187,8 +262,10 @@ export async function GET(request: NextRequest) {
             }
         }
 
-        // 5. Images from Spotify
-        const spotifyData = await searchSpotifyImages(q);
+        // ─── Spotify images (already fetched in parallel) ───────────────
+
+        const spotifyData = spotifyResult.status === 'fulfilled' ? spotifyResult.value : null;
+
         if (spotifyData) {
             artists = artists.map((a) => {
                 const spArtist = spotifyData.artists?.items?.find((x: any) => x.name.toLowerCase() === a.name.toLowerCase());
@@ -207,13 +284,18 @@ export async function GET(request: NextRequest) {
             });
         }
 
-        return NextResponse.json({
+        const responseData = {
             query: q,
             users,
             artists,
             albums,
             songs,
-        });
+        };
+
+        // Cache the result asynchronously (non-blocking)
+        setCache(cacheKey, responseData);
+
+        return NextResponse.json(responseData);
     } catch (error: any) {
         console.error('Unified search error:', error);
         return NextResponse.json(
@@ -223,12 +305,12 @@ export async function GET(request: NextRequest) {
     }
 }
 
-// MusicBrainz helpers 
+// ─── MusicBrainz helpers (no serial rate-limit delays) ──────────────────────
 
 async function searchMBArtists(query: string, limit: number) {
     try {
         const url = `${MB_BASE}/artist?query=${encodeURIComponent(query)}*&fmt=json&limit=${limit}`;
-        const res = await mbFetch(url);
+        const res = await mbFetchDirect(url);
         if (!res.ok) return [];
         const data = await res.json();
         return (data.artists || []).map((a: any) => ({
@@ -243,7 +325,7 @@ async function searchMBArtists(query: string, limit: number) {
 async function searchMBAlbums(query: string, limit: number) {
     try {
         const url = `${MB_BASE}/release-group?query=${encodeURIComponent(query)}&fmt=json&limit=${limit}`;
-        const res = await mbFetch(url);
+        const res = await mbFetchDirect(url);
         if (!res.ok) return [];
         const data = await res.json();
         return (data['release-groups'] || []).map((rg: any) => ({
@@ -261,7 +343,7 @@ async function searchMBAlbums(query: string, limit: number) {
 async function searchMBSongs(query: string, limit: number) {
     try {
         const url = `${MB_BASE}/recording?query=${encodeURIComponent(query)}&fmt=json&limit=${limit}`;
-        const res = await mbFetch(url);
+        const res = await mbFetchDirect(url);
         if (!res.ok) return [];
         const data = await res.json();
         return (data.recordings || []).map((rec: any) => ({

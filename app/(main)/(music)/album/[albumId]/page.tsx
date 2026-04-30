@@ -2,6 +2,7 @@
 import { ArrowLeft, ExternalLink, Music, ChevronDown, Send, X } from 'lucide-react';
 import { VinylRating } from '@/components/vinyl-rating';
 import { ImageWithFallback } from '@/components/img/ImageWithFallback';
+import ReviewComments from '@/components/ReviewComments';
 import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
@@ -148,8 +149,8 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black pb-20 animate-pulse">
-        <header className="bg-[#0a0a0a] border-b border-gray-800 sticky top-0 z-10 h-14" />
+      <div className="min-h-screen bg-black pt-15 pb-20 animate-pulse">
+        
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="flex gap-6 mb-6">
             <div className="w-40 h-40 rounded-lg bg-[#181818] flex-shrink-0" />
@@ -354,26 +355,43 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
               </div>
             ) : reviews.length > 0 ? (
               reviews.map((r: any) => (
-                <div key={r.id} className="bg-[#181818] border border-gray-800/50 rounded-xl p-5 hover:bg-[#1f1f1f] transition-all duration-200">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">
-                          {(r.user_id as string).charAt(0).toUpperCase()}
-                        </span>
+                <div key={r.id} className="relative flex flex-col border border-white/5 bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-5 hover:bg-[#151515] transition-all duration-300 overflow-hidden group shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                  {/* Atmospheric Background Glow */}
+                  <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#1DB954]/5 rounded-full blur-[80px] group-hover:bg-[#1DB954]/10 transition-colors duration-700 pointer-events-none z-0" />
+                  <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700 pointer-events-none z-0" />
+
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center ring-2 ring-gray-700">
+                          <span className="text-white font-bold text-xs">
+                            {(r.user_id as string).charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <span className="text-gray-400 text-xs font-medium">{getTimeAgo(r.created_at)}</span>
                       </div>
-                      <span className="text-gray-400 text-xs">{getTimeAgo(r.created_at)}</span>
+                      
+                      {/* Vinyl Rating Badge */}
+                      {r.rating != null && (
+                        <div className="flex items-center bg-black/40 px-2.5 py-1.5 rounded-lg border border-white/5 backdrop-blur-md shadow-inner">
+                            <VinylRating rating={Number(r.rating)} size="md" />
+                        </div>
+                      )}
                     </div>
-                    {r.rating != null && (
-                      <VinylRating rating={r.rating} size="sm" />
+                    {r.review && (
+                      <div className="mt-2 mb-2">
+                        <p className="text-gray-200/90 text-[15px] leading-relaxed line-clamp-3 font-medium">
+                          {r.review}
+                        </p>
+                      </div>
                     )}
+                    {r.edited_at && (
+                      <p className="text-gray-500 text-[11px] mt-1 italic tracking-wide">edited</p>
+                    )}
+                    <div className="w-full mt-2">
+                      <ReviewComments reviewId={r.id} userId={userId} />
+                    </div>
                   </div>
-                  {r.review && (
-                    <p className="text-gray-300 text-sm leading-relaxed">{r.review}</p>
-                  )}
-                  {r.edited_at && (
-                    <p className="text-gray-600 text-xs mt-2 italic">edited</p>
-                  )}
                 </div>
               ))
             ) : (

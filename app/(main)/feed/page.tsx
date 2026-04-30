@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { TrendingUp, Music, Disc3, Loader2 } from "lucide-react";
 import { UnifiedReview } from "@/lib/types/review";
 import Review from "@/components/Review";
+import { createClient } from "@/lib/supabase/browser";
 
 type FeedFilter = "all" | "songs" | "albums";
 
@@ -12,6 +13,17 @@ export default function FeedPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<FeedFilter>("all");
+  const [userId, setUserId] = useState<string | null>(null);
+
+  // grab logged-in user for comment functionality
+  useEffect(() => {
+    async function getUser() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    }
+    getUser();
+  }, []);
 
   useEffect(() => {
     async function fetchReviews() {
@@ -111,6 +123,7 @@ export default function FeedPage() {
                 key={`${review.review_type}-${review.id}`}
                 review={review}
                 showUser={true}
+                userId={userId}
               />
             ))}
           </div>
