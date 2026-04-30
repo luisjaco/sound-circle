@@ -10,6 +10,7 @@ import { Suspense, useEffect, useState, createContext, SetStateAction } from "re
 import { createClient } from "@/lib/supabase/browser";
 import { notFound } from 'next/navigation';
 import { AsideContext } from '../../components/AsideContext';
+import { useRouter } from 'next/navigation';
 
 
 export default function MainLayout({ children }: Props) {
@@ -19,6 +20,10 @@ export default function MainLayout({ children }: Props) {
     const supabase = createClient();
     const [username, setUsername] = useState('');
     const [profilePictureUrl, setProfilePictureUrl] = useState('');
+
+    const [isModerator, setIsModerator] = useState(false);
+
+    const router = useRouter();
 
     useEffect(() => {
         let isMounted = true;
@@ -36,9 +41,23 @@ export default function MainLayout({ children }: Props) {
                 .single();
 
             if (!profile) notFound();
+            
+            if (profile.banned) {
+                router.push('/banned');
+                return;
+            }
 
-            setUsername(profile.username);
-            setProfilePictureUrl(profile.profile_picture_url);
+            const { data: modData } = await supabase
+                .from('moderator')
+                .select('id')
+                .eq('user_id', user.id)
+                .maybeSingle();
+
+            if (isMounted) {
+                setUsername(profile.username);
+                setProfilePictureUrl(profile.profile_picture_url);
+                setIsModerator(!!modData);
+            }
         }
 
         grabCurrentUser();
@@ -63,6 +82,7 @@ export default function MainLayout({ children }: Props) {
                 <SideBar
                     username={username}
                     profilePictureUrl={profilePictureUrl}
+                    isModerator={isModerator}
                 />
                 <ListeningHistory />
                 <Suspense>

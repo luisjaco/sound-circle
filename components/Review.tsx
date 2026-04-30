@@ -4,8 +4,10 @@ import Link from "next/link";
 import { ImageWithFallback } from "./img/ImageWithFallback";
 import { VinylRating } from "./vinyl-rating";
 import ReviewComments from "./ReviewComments";
-import { Music, Disc3 } from "lucide-react";
+import { Music, Disc3, Flag } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import { FlagModal } from './FlagModal';
+import { useFlagReview } from '@/hooks/useFlagReview';
 
 function getTimeAgo(dateStr: string): string {
     const now = new Date();
@@ -34,6 +36,17 @@ export default function FeedReviewCard({
     }) {
 
     const router = useRouter();
+
+    const {
+        showFlagModal,
+        setShowFlagModal,
+        submitting,
+        submitError,
+        submitSuccess,
+        handleFlagClick,
+        handleFlagSubmit,
+    } = useFlagReview(review.id, review.review_type);
+
     const itemName =
         review.review_type === "song"
             ? review.song?.name ?? "Unknown Song"
@@ -160,39 +173,57 @@ export default function FeedReviewCard({
 
 
     return (
-        <div 
-            onClick={() => router.push(`/review/${review.id}`)}
-            className='relative flex flex-col border border-white/5 bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-5 hover:bg-[#151515] transition-all duration-300 cursor-pointer overflow-hidden group shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'>
-            
-            {/* Atmospheric Background Glow */}
-            <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#1DB954]/5 rounded-full blur-[80px] group-hover:bg-[#1DB954]/10 transition-colors duration-700 pointer-events-none z-0" />
-            <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700 pointer-events-none z-0" />
-            
-            <div className="relative z-10">
-                {showUser && (userHeader)}
+        <>
+            {showFlagModal && (
+                <FlagModal
+                    onClose={() => setShowFlagModal(false)}
+                    onSubmit={handleFlagSubmit}
+                    submitting={submitting}
+                    submitError={submitError}
+                    submitSuccess={submitSuccess}
+                />
+            )}
+            <div 
+                onClick={() => router.push(`/review/${review.id}`)}
+                className='relative flex flex-col border border-white/5 bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-5 hover:bg-[#151515] transition-all duration-300 cursor-pointer overflow-hidden group shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]'>
+                
+                {/* Atmospheric Background Glow */}
+                <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#1DB954]/5 rounded-full blur-[80px] group-hover:bg-[#1DB954]/10 transition-colors duration-700 pointer-events-none z-0" />
+                <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700 pointer-events-none z-0" />
+                
+                <div className="relative z-10">
+                    {showUser && (userHeader)}
 
-                {/* Song/Album info */}
-                {mediaInfo}
+                        {/* Song/Album info */}
+                        {mediaInfo}
 
-                {/* Review text */}
-                {review.review && (
-                    <div className="mt-2 mb-2">
-                        <p className="text-gray-200/90 text-[15px] leading-relaxed line-clamp-3 font-medium">
+                    {/* Review text */}
+                    {review.review && (
+                        <p className="text-gray-300 text-sm leading-relaxed line-clamp-3">
                             {review.review}
                         </p>
+                    )}
+
+                    {/* Edited indicator */}
+                    <div className="flex items-center justify-between mt-2">
+                        {review.edited_at ? (
+                            <p className="text-gray-600 text-xs italic">edited</p>
+                        ) : (
+                            <div />
+                        )}
+                        <button
+                            onClick={handleFlagClick}
+                            className="flex items-center gap-1 text-gray-600 hover:text-red-400 transition-colors text-xs"
+                        >
+                            <Flag className="w-3.5 h-3.5" />
+                        </button>
                     </div>
-                )}
-
-                {/* Edited indicator */}
-                {review.edited_at && (
-                    <p className="text-gray-500 text-[11px] mt-1 italic tracking-wide">edited</p>
-                )}
-
-                {/* Comments section taking full width */}
-                <div className="w-full mt-2" onClick={(e) => e.stopPropagation()}>
-                    <ReviewComments reviewId={review.id} userId={userId ?? null} />
+                    {/* Comments section taking full width */}
+                    <div className="w-full mt-2" onClick={(e) => e.stopPropagation()}>
+                        <ReviewComments reviewId={review.id} userId={userId ?? null} />
+                    </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 }
