@@ -10,6 +10,7 @@ import { Suspense, useEffect, useState, createContext, SetStateAction } from "re
 import { createClient } from "@/lib/supabase/browser";
 import { notFound } from 'next/navigation';
 import { AsideContext } from '../../components/AsideContext';
+import { useRouter } from 'next/navigation';
 
 
 export default function MainLayout({ children }: Props) {
@@ -21,6 +22,8 @@ export default function MainLayout({ children }: Props) {
     const [profilePictureUrl, setProfilePictureUrl] = useState('');
 
     const [isModerator, setIsModerator] = useState(false);
+
+    const router = useRouter();
 
     useEffect(() => {
         let isMounted = true;
@@ -39,6 +42,11 @@ export default function MainLayout({ children }: Props) {
 
             if (!profile) notFound();
             
+            if (profile.banned) {
+                router.push('/banned');
+                return;
+            }
+
             const { data: modData } = await supabase
                 .from('moderator')
                 .select('id')
