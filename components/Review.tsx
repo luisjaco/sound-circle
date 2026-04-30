@@ -6,15 +6,8 @@ import { VinylRating } from "./vinyl-rating";
 import ReviewComments from "./ReviewComments";
 import { Music, Disc3, Flag } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-
-const FLAG_REASONS = [
-    'Spam',
-    'Harassment',
-    'Hate Speech',
-    'Inappropriate Content',
-    'Other',
-]
+import { FlagModal } from './FlagModal';
+import { useFlagReview } from '@/hooks/useFlagReview';
 
 function getTimeAgo(dateStr: string): string {
     const now = new Date();
@@ -33,107 +26,6 @@ function getTimeAgo(dateStr: string): string {
     return then.toLocaleDateString();
 }
 
-// flag modal component
-function FlagModal({
-    onClose,
-    onSubmit,
-    submitting,
-    submitError,
-    submitSuccess,
-}: {
-    onClose: () => void;
-    onSubmit: (reason: string) => void;
-    submitting: boolean;
-    submitError: string;
-    submitSuccess: boolean;
-}) {
-    const [selectedReason, setSelectedReason] = useState('');
-    const [otherText, setOtherText] = useState('');
- 
-    const handleSubmit = () => {
-        const reason = selectedReason === 'Other' ? otherText.trim() : selectedReason;
-        if (!reason) return;
-        onSubmit(reason);
-    };
-        return (
-        // backdrop
-        <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70"
-            onClick={onClose}
-        >
-            {/* modal */}
-            <div
-                className="bg-[#181818] border border-gray-800 rounded-xl p-6 w-full max-w-sm mx-4"
-                onClick={(e) => e.stopPropagation()}
-            >
-                <h2 className="text-white font-semibold text-lg mb-4">Report Review</h2>
- 
-                {submitSuccess ? (
-                    <div className="text-center py-4">
-                        <p className="text-[#1DB954] font-medium">Report submitted successfully.</p>
-                        <button
-                            onClick={onClose}
-                            className="mt-4 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                        >
-                            Close
-                        </button>
-                    </div>
-                ) : (
-                    <>
-                        <p className="text-gray-400 text-sm mb-4">Select a reason for reporting this review:</p>
- 
-                        <div className="space-y-2 mb-4">
-                            {FLAG_REASONS.map((reason) => (
-                                <button
-                                    key={reason}
-                                    onClick={() => setSelectedReason(reason)}
-                                    className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors border ${
-                                        selectedReason === reason
-                                            ? 'border-[#1DB954] bg-[#1DB954]/10 text-white'
-                                            : 'border-gray-700 text-gray-400 hover:border-gray-500 hover:text-white'
-                                    }`}
-                                >
-                                    {reason}
-                                </button>
-                            ))}
-                        </div>
- 
-                        {selectedReason === 'Other' && (
-                            <textarea
-                                value={otherText}
-                                onChange={(e) => setOtherText(e.target.value)}
-                                placeholder="Describe the issue..."
-                                className="w-full bg-black border border-gray-700 rounded-lg p-3 text-white text-sm resize-none focus:outline-none focus:border-[#1DB954] mb-4"
-                                rows={3}
-                            />
-                        )}
- 
-                        {submitError && (
-                            <p className="text-red-400 text-sm mb-3">{submitError}</p>
-                        )}
- 
-                        <div className="flex gap-2">
-                            <button
-                                onClick={onClose}
-                                className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors text-sm"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSubmit}
-                                disabled={!selectedReason || (selectedReason === 'Other' && !otherText.trim()) || submitting}
-                                className="flex-1 px-4 py-2 bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/30 transition-colors text-sm disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
-                                {submitting ? 'Submitting...' : 'Submit Report'}
-                            </button>
-                        </div>
-                    </>
-                )}
-            </div>
-        </div>
-    );
-}
-
 export default function FeedReviewCard({
     review,
     showUser,
@@ -145,10 +37,15 @@ export default function FeedReviewCard({
 
     const router = useRouter();
 
-    const [showFlagModal, setShowFlagModal] = useState(false);
-    const [submitting, setSubmitting] = useState(false);
-    const [submitError, setSubmitError] = useState('');
-    const [submitSuccess, setSubmitSuccess] = useState(false);
+    const {
+        showFlagModal,
+        setShowFlagModal,
+        submitting,
+        submitError,
+        submitSuccess,
+        handleFlagClick,
+        handleFlagSubmit,
+    } = useFlagReview(review.id, review.review_type);
 
     const itemName =
         review.review_type === "song"
@@ -168,42 +65,6 @@ export default function FeedReviewCard({
 
         router.push(`/user/${review.user.username}`);
     }
-
-        const handleFlagClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        setSubmitSuccess(false);
-        setSubmitError('');
-        setShowFlagModal(true);
-    };
- 
-    const handleFlagSubmit = async (reason: string) => {
-        setSubmitting(true);
-        setSubmitError('');
-        try {
-            const type = review.review_type === 'song' ? 'song_review' : 'album_review';
-            const res = await fetch('/api/moderation/report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    type,
-                    reviewId: review.id,
-                    reason,
-                }),
-            });
- 
-            const data = await res.json();
- 
-            if (!res.ok) {
-                setSubmitError(data.error || 'Failed to submit report.');
-            } else {
-                setSubmitSuccess(true);
-            }
-        } catch {
-            setSubmitError('An unexpected error occurred.');
-        } finally {
-            setSubmitting(false);
-        }
-    };
 
     const userHeader = (
         <div className="flex items-center gap-3 mb-4">
