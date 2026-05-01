@@ -177,7 +177,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
             {songData.artists && (
               <button
                 onClick={() => router.push(`/artist/${songData.artist_id}`)}
-                className="text-gray-300 hover:text-white text-lg mb-2 text-left transition-colors"
+                className="text-gray-300 hover:text-[#1DB954] text-lg mb-2 text-left transition-colors cursor-pointer"
               >
                 {songData.artists.name}
               </button>

@@ -239,7 +239,7 @@ export default function ListContent({
         }
 
         console.log(newSong);
-        setItems((i) => {return [...i, newSong]})
+        setItems((i) => { return [...i, newSong] })
     };
 
     const addSongs = (
@@ -247,41 +247,82 @@ export default function ListContent({
             <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter') e.preventDefault(); }}
-                placeholder='Search'
-                className={`w-xl text-lg whitespace-pre-wrap font-mono mt-2 wrap-break-words p-1 rounded-lg focus:outline-none
-         bg-[#0a0a0a] text-white focus:border-[#1DB954] placeholder-gray-500 transition-colors resize-none min-h-10`}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.preventDefault();
+                }}
+                placeholder="Search"
+                className="
+        w-3xl text-base font-medium
+        px-4 py-3 mt-2
+        rounded-xl
+        bg-[#121212] text-white
+        border border-[#2a2a2a]
+        placeholder-gray-500
+        focus:outline-none focus:ring-2 focus:ring-[#1DB954]
+        transition
+    "
             />
 
             {/* search result dropdown */}
             {query.trim() !== '' && (
-                <div className="border max-h-48 overflow-y-auto mt-2 rounded-lg bg-[#0a0a0a]">
+                <div
+                    className="
+            mt-2 rounded-xl overflow-hidden
+            bg-[#181818]
+            border border-[#2a2a2a]
+            max-h-56 overflow-y-auto
+            shadow-lg
+            w-2xl
+        "
+                >
                     {searching ? (
-                        <div className="p-2">Searching...</div>
+                        <div className="p-3 text-sm opacity-70">
+                            Searching...
+                        </div>
                     ) : searchError ? (
-                        <div className="p-2 text-red-500 text-sm">An error occurred.</div>
+                        <div className="p-3 text-sm text-red-400">
+                            An error occurred.
+                        </div>
                     ) : results.length > 0 ? (
                         (results as any[]).map((r) => {
                             const label = r.name;
                             const sub = r.artistName ? r.artistName : null;
+
                             return (
                                 <button
-                                    type="button"
                                     key={r.id}
-                                    className="block w-full text-left px-3 py-2 border-b border-white hover:text-[#1DB954] transition-colors"
+                                    type="button"
                                     onClick={() => {
                                         addSong(r);
-                                        console.log(r);
                                         setQuery('');
                                     }}
+                                    className="
+                            w-full text-left
+                            px-4 py-3
+                            flex flex-col
+                            cursor-pointer
+                            hover:bg-[#242424]
+                            transition
+                            border-b border-[#2a2a2a]
+                            last:border-b-0
+                        "
                                 >
-                                    <span>{label}</span>
-                                    {sub && <span className="text-sm opacity-60 ml-2">{sub}</span>}
+                                    <span className="text-sm font-medium">
+                                        {label}
+                                    </span>
+
+                                    {sub && (
+                                        <span className="text-xs opacity-60 mt-1">
+                                            {sub}
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })
                     ) : (
-                        <div className="p-2">No results found</div>
+                        <div className="p-3 text-sm opacity-50">
+                            No results found
+                        </div>
                     )}
                 </div>
             )}

@@ -183,10 +183,10 @@ export default function Header({
 
                 <div className='flex flex-col w-3xs justify-around items-center'>
 
-                    <div className='flex justify-around w-full'>
+                    {/* <div className='flex justify-around w-full'>
                         <SpotifyIcon size={8} />
                         <AppleMusicIcon size={8} />
-                    </div>
+                    </div> */}
                     {
                         (true) ? (
                             genres.map((x: any, key: any) => {

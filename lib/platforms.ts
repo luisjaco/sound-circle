@@ -34,6 +34,15 @@ export async function fetchPlatformIdsFallback(
 
     const query = artistName ? `${name} ${artistName}` : name;
 
+    await Promise.all([
+        fetchSpotify(type, query, spotifyId),
+        fetchAppleMusic(type, query, appleId)
+    ]);
+
+    return { spotifyId, appleId };
+}
+
+async function fetchSpotify(type: string, query: string, spotifyId: string | null) {
     // 1. Spotify
     try {
         const spotifyData = await searchSpotifyImages(query);
@@ -49,14 +58,16 @@ export async function fetchPlatformIdsFallback(
     } catch (e) {
         console.error('Failed to fetch Spotify ID fallback', e);
     }
+}
 
-    // 2. Apple Music
+async function fetchAppleMusic(type: string, query: string, appleId: string | null) {
+    // 2. apple music
     try {
         const devToken = getAppleDeveloperToken();
         if (devToken) {
             const appleType = type === 'song' ? 'songs' : type === 'album' ? 'albums' : 'artists';
             const url = `https://api.music.apple.com/v1/catalog/us/search?types=${appleType}&limit=1&term=${encodeURIComponent(query)}`;
-            
+
             const res = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${devToken}`
@@ -77,6 +88,4 @@ export async function fetchPlatformIdsFallback(
     } catch (e) {
         console.error('Failed to fetch Apple Music ID fallback', e);
     }
-
-    return { spotifyId, appleId };
 }

@@ -68,7 +68,7 @@ function populateGenres(genres: any) {
             <div
                 key={g.genre_id}
                 style={{ backgroundColor: color }}
-                className="flex items-center justify-center p-2 rounded-lg w-40 min-h-15 max-h-20 overflow-hidden"
+                className="flex items-center justify-center p-2 rounded-lg w-40 min-h-18 max-h-20 overflow-hidden"
             >
                 <span className="text-white font-bold italic">{g.genres.genre}</span>
             </div>

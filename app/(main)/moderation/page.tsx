@@ -66,7 +66,7 @@ export default function ModeratorPage() {
 
         setFlaggedPosts(postsData.posts || []);
         setUserReports(usersData.users || []);
-      } catch (err) { 
+      } catch (err) {
         console.error('Failed to load moderation data:', err);
         setLoadError('Failed to load moderation data. Please refresh.');
       } finally {
@@ -75,9 +75,9 @@ export default function ModeratorPage() {
     }
 
     async function loadUser() {
-        const res = await fetch('/api/auth/session');
-        const data = await res.json();
-        if (res.ok) setCurrentUserId(data.user.id);
+      const res = await fetch('/api/auth/session');
+      const data = await res.json();
+      if (res.ok) setCurrentUserId(data.user.id);
     }
 
     loadData();
@@ -167,8 +167,8 @@ export default function ModeratorPage() {
       setUserReports((prev) =>
         prev.map((u) => {
           if (u.userId !== userId) return u;
-          if (action === 'warn')  return { ...u, warned: true };
-          if (action === 'ban')   return { ...u, banned: true };
+          if (action === 'warn') return { ...u, warned: true };
+          if (action === 'ban') return { ...u, banned: true };
           if (action === 'unban') return { ...u, banned: false, warned: false };
           return u;
         })
@@ -199,27 +199,21 @@ export default function ModeratorPage() {
   );
 
   return (
-    <div className="min-h-screen bg-black pb-6">
+    <div className=" bg-black pb-6">
       {/* Header */}
-      <header>
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center gap-3">
-            <Shield className="w-7 h-7 text-[#1DB954]" />
-            <h1 className="text-2xl font-bold text-white">
-              Moderator Dashboard
+      <header className='px-20'>
+            <h1 className="text-5xl w-full font-bold pt-15 pb-3 border-b border-gray-800 flex items-center">
+              <Shield className='h-12 w-12 mr-5' /> Moderator Dashboard
             </h1>
-          </div>
-        </div>
       </header>
 
       {/* Tabs */}
-      <div className="max-w-4xl mx-auto px-4 pt-4">
+      <div className="max-w-4xl mx-auto px-4 pt-10">
         <div className="flex gap-4 mb-6 border-b border-gray-800">
           <button
             onClick={() => setActiveTab('flagged')}
-            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 cursor-pointer ${
-              activeTab === 'flagged' ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 cursor-pointer ${activeTab === 'flagged' ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <Flag className="w-4 h-4" />
             Flagged Posts ({flaggedPosts.length})
@@ -229,9 +223,8 @@ export default function ModeratorPage() {
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 cursor-pointer ${
-              activeTab === 'users' ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
-            }`}
+            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 cursor-pointer ${activeTab === 'users' ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
+              }`}
           >
             <AlertTriangle className="w-4 h-4" />
             User Reports ({userReports.length})
@@ -255,7 +248,7 @@ export default function ModeratorPage() {
                   {/* Post Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                        <ProfilePicture size={14} src={post.userAvatar ? post.userAvatar : undefined} /> 
+                      <ProfilePicture size={14} src={post.userAvatar ? post.userAvatar : undefined} />
                       <div>
                         <p className="text-white font-medium">{post.username || 'Unknown user'}</p>
                         <p className="text-gray-400 text-sm">{post.type === 'song_review' ? 'Song Review' : 'Album Review'}</p>
@@ -311,20 +304,20 @@ export default function ModeratorPage() {
                   {/* Flag Reason */}
                   <div className="mb-4 p-3 bg-red-500/5 rounded-lg border border-red-500/20">
                     <p className="text-sm text-gray-400 mb-1">Flag Reasons:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {post.reasons.length > 0 ? (
-                          post.reasons.map((reason, idx) => (
-                            <span
-                              key={idx}
-                              className="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded border border-red-500/20"
-                            >
-                              {reason}
-                            </span>
-                          ))
-                        )  : (
-                          <p className="text-red-400 text-sm">No reason</p>
-                        )}
-                      </div>
+                    <div className="flex flex-wrap gap-2">
+                      {post.reasons.length > 0 ? (
+                        post.reasons.map((reason, idx) => (
+                          <span
+                            key={idx}
+                            className="text-xs bg-red-500/10 text-red-400 px-2 py-1 rounded border border-red-500/20"
+                          >
+                            {reason}
+                          </span>
+                        ))
+                      ) : (
+                        <p className="text-red-400 text-sm">No reason</p>
+                      )}
+                    </div>
                   </div>
 
                   {/* Actions */}
@@ -371,7 +364,7 @@ export default function ModeratorPage() {
                   {/* User Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <ProfilePicture size={14} src={user.userAvatar ? user.userAvatar : undefined} /> 
+                      <ProfilePicture size={14} src={user.userAvatar ? user.userAvatar : undefined} />
                       <div>
                         <p className="text-white font-medium">{user.username}</p>
                       </div>

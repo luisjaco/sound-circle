@@ -179,6 +179,8 @@ export async function getSongComponentData(songs: Song[]) {
 
     const spotifyIds = songs.map((x) => x.spotify_id || '').filter((x) => x.length > 0);
 
+    if (spotifyIds.length === 0) return songs;
+
     let res = ((songs.length === 1) ? await getSong(spotifyIds[0]) : await getSongs(spotifyIds));
     if (!res) return [];
 

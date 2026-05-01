@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { validateUsernameSB } from '@/app/(auth)/onboarding/queries';
 import { useMusicKit } from "@/components/providers/MusicKitProvider";
-import { Loader2, ArrowLeft, User, Lock, Music, ChevronRight, X, Camera } from 'lucide-react';
+import { Loader2, ArrowLeft, User, Lock, Music, ChevronRight, X, Camera, Settings } from 'lucide-react';
 import SpotifyButton from '@/components/SpotifyButton';
 import AppleMusicButton from '@/components/AppleMusicButton';
 
@@ -127,12 +127,21 @@ export default function SettingsPage() {
         </div>
     );
 
+    const header = (
+        <header className='px-20'>
+            <h1 className="text-5xl w-full font-bold pt-15 pb-3 border-b border-gray-800 flex items-center mb-15">
+                <Settings className='h-12 w-12 mr-5' /> Settings
+            </h1>
+        </header>
+    )
+
     // ─── Shared input style matching site's login/onboarding fields ─────────
     const inputCls = "w-full bg-[#282828] border border-gray-700 rounded-lg px-4 py-3 text-white text-sm placeholder-gray-500 outline-none focus:border-gray-500 transition-colors";
 
     // ─── Section: Edit Profile ───────────────────────────────────────────────
     if (activeSection === 'profile') return (
         <div className="min-h-screen bg-black pb-20">
+            {header}
             <form onSubmit={handleSubmit} className="max-w-2xl mx-auto px-4 py-6 space-y-5">
 
                 {/* Back button row */}
@@ -218,6 +227,7 @@ export default function SettingsPage() {
     // ─── Section: Change Password ────────────────────────────────────────────
     if (activeSection === 'password') return (
         <div className="min-h-screen bg-black pb-20">
+            {header}
             <form onSubmit={handleSubmit} className="max-w-2xl mx-auto px-4 py-6 space-y-5">
 
                 {/* Back button row */}
@@ -259,8 +269,9 @@ export default function SettingsPage() {
     // ─── Main Settings Menu ──────────────────────────────────────────────────
     return (
         <div className="min-h-screen bg-black pb-20">
+            {header}
             <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-
+                
                 {/* Account */}
                 <div>
                     <h2 className="text-gray-400 text-sm font-medium mb-3 px-2 tracking-wider">ACCOUNT</h2>

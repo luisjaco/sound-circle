@@ -193,7 +193,7 @@ export default function AlbumPage({ params }: { params: Promise<{ albumId: strin
             <h2 className="text-3xl font-bold text-white mb-2">{albumData.name}</h2>
             <button
               onClick={() => router.push(`/artist/${albumData.artist_id}`)}
-              className="text-gray-300 hover:text-white text-lg mb-2 text-left transition-colors"
+              className="text-gray-300 hover:text-[#1DB954] text-lg mb-2 text-left transition-colors cursor-pointer"
             >
               {albumData.artists?.name}
             </button>

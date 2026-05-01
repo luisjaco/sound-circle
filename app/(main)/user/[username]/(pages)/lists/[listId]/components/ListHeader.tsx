@@ -1,7 +1,7 @@
 'use client'
 import { ImageWithFallback } from "@/components/img/ImageWithFallback"
 import { createClient } from "@/lib/supabase/browser"
-import { Check, ListVideo, PencilIcon, X } from "lucide-react"
+import { Check, ListVideo, PencilIcon, Trash, X } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { use, useRef, useState } from "react"
 
@@ -57,6 +57,8 @@ export default function ListHeader({
 
     const supabase = createClient();
     const router = useRouter();
+
+    const [eraseError, setEraseError] = useState(false);
 
     const handleRemovePhoto = () => {
         setNewListImageUrl(null);
@@ -132,6 +134,30 @@ export default function ListHeader({
             setUpdatedAtTimeAgo('0s');
         }
 
+    }
+
+    const erase = async () => {
+        // confirm user is sure
+        const ok = window.confirm("Are you sure you want to delete your list? This CANNOT be undone.");
+
+        if (!ok) return;
+
+        else {
+            const { error } = await supabase
+                .from('user_lists')
+                .delete()
+                .eq('id', id);
+
+            if ( error ) {
+                console.error(`error when deleting list id#(${id})`);
+                console.error(error)
+                setEraseError(true);
+                return;
+            }
+            else {
+                router.push(`/user/${username}/lists`);
+            }
+        }
     }
 
     const createEdit = async () => {
@@ -278,23 +304,29 @@ export default function ListHeader({
     )
 
     const editingAside = (
-        <div className="mb-auto w-10" hidden={!owner}>
+        <div className=" w-10" hidden={!owner}>
             <div hidden={editing} className='w-10 h-9'>
                 <PencilIcon
                     className={`w-9 h-9 hover:text-[#1DB954] transition-colors cursor-pointer`}
                     onClick={() => setEditing(true)}
                 />
             </div>
-            <div className='mb-auto' hidden={!editing}>
+            <div className='' hidden={!editing}>
                 <X
                     className={`w-10 h-10 hover:text-red-500 transition-colors cursor-pointer`}
                     onClick={cancelEdit}
                 />
             </div>
-            <div className='mb-auto mt-10' hidden={!editing}>
+            <div className=' mt-4' hidden={!editing}>
                 <Check
                     className={`w-10 h-10 hover:text-[#1DB954] transition-colors cursor-pointer`}
                     onClick={submit}
+                />
+            </div>
+            <div className=' mt-4' hidden={!editing}>
+                <Trash
+                    className={`w-10 h-10 hover:text-red-500 transition-colors cursor-pointer`}
+                    onClick={erase}
                 />
             </div>
         </div>
@@ -366,6 +398,9 @@ export default function ListHeader({
         </label>
         <label hidden={!success} className={`text-[#1DB954] text-sm mt-2 mx-auto `}>
             List successfully updated.
+        </label>
+        <label hidden={!eraseError} className={`text-red-500 text-sm mt-2 mx-auto`}>
+            There was an error when attempting to erase your list.
         </label>
     </div>)
 }

@@ -21,8 +21,8 @@ export default function Page({
     return (
         <div>
             <header className='flex flex-col gap-2 px-20'>
-                <h1 className="text-5xl font-bold pt-15 pb-3 border-b border-gray-800">
-                    {owner ? 'My' : `${username}'s`} Lists
+                <h1 className="text-5xl font-bold pt-15 pb-3 border-b border-gray-800 flex items-center">
+                    <ListVideo className='h-12 w-12 mr-5'/> {owner ? 'My' : `${username}'s`} Lists
                 </h1>
                 {owner &&
                     <CreateList

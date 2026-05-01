@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Music, Disc3, Loader2 } from 'lucide-react';
+import { Music, Disc3, Loader2, Disc3Icon } from 'lucide-react';
 import { UnifiedReview } from '@/lib/types/review';
 import Review from "@/components/Review";
 import { createClient } from '@/lib/supabase/browser';
@@ -18,6 +18,7 @@ export default function ReviewsPage() {
     const [filter, setFilter] = useState<ProfileReviewFilter>('all');
     const [userId, setUserId] = useState<string | null>(null);
 
+    
     // grab logged-in user for comment functionality
     useEffect(() => {
         async function getUser() {
@@ -59,11 +60,16 @@ export default function ReviewsPage() {
     }, [username, filter]);
 
     return (
-        <div className="min-h-screen bg-black text-white pb-20">
-            <div className="max-w-4xl mx-auto px-4 py-6">
-                {/* Header / Filter */}
-                <div className="flex items-center justify-between mb-6">
-                    <h3 className="text-white font-bold text-lg">Reviews</h3>
+        <div className=" bg-black text-white pb-20">
+            <header className='px-20'>
+                <h1 className="text-5xl w-full font-bold pt-15 pb-3 border-b border-gray-800 flex items-center">
+                    <Disc3Icon className='h-12 w-12 mr-5' /> {`${username}'s Reviews`}
+                </h1>
+            </header>
+            <div className="w-4xl mx-auto px-4 py-6">
+
+                {/* Filter */}
+                <div className="flex items-center justify-between mb-6 mt-10">
                     <div className="flex gap-1 bg-[#111] rounded-lg p-1 border border-gray-800/50">
                         {([
                             { key: 'all' as const, label: 'All' },
@@ -73,11 +79,10 @@ export default function ReviewsPage() {
                             <button
                                 key={key}
                                 onClick={() => setFilter(key)}
-                                className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 ${
-                                    filter === key
-                                        ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
-                                        : 'text-gray-400 hover:text-white hover:bg-white/5'
-                                }`}
+                                className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 ${filter === key
+                                    ? 'bg-[#1DB954] text-black shadow-lg shadow-[#1DB954]/20'
+                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                    }`}
                             >
                                 {Icon && <Icon className="w-3 h-3" />}
                                 {label}
@@ -118,6 +123,6 @@ export default function ReviewsPage() {
                 )}
             </div>
         </div>
-       
+
     )
 }

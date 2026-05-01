@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ImageWithFallback } from '@/components/img/ImageWithFallback';
 import { VinylRating } from '@/components/vinyl-rating';
-import { Music, Disc3, Loader2 } from 'lucide-react';
+import { Music, Disc3, Loader2, Settings, Disc3Icon, ListVideo } from 'lucide-react';
 import { UnifiedReview } from '@/lib/types/review';
 import { useRouter } from 'next/navigation';
 import Review from '@/components/Review';
@@ -46,6 +46,22 @@ export default function ProfileFooter({ username }: { username: string }) {
             {/* Header / Filter */}
             <div className="flex items-center justify-between mb-4">
                 <h3 className="text-white font-bold text-lg">Reviews</h3>
+
+                <div className='flex justify-around items-center px-10 gap-10 '>
+                    <div 
+                        className='flex items-center font-bold text-lg bg-[#111] rounded-lg p-1 border border-gray-800/50 cursor-pointer hover:text-[#1DB954] transition-colorz'
+                        onClick={() => router.push(`/user/${username}/reviews`)}    
+                    >
+                        <Disc3Icon className='h-6 w-6 mr-3' />All Reviews
+                    </div>
+                    <div 
+                        className='flex items-center font-bold text-lg bg-[#111] rounded-lg p-1 border border-gray-800/50 cursor-pointer hover:text-[#1DB954] transition-colors'
+                        onClick={() => router.push(`/user/${username}/lists`)}        
+                    >
+                        <ListVideo className='h-6 w-6 mr-3' />Lists
+                    </div>
+                </div>
+
                 <div className="flex gap-1 bg-[#111] rounded-lg p-1 border border-gray-800/50">
                     {([
                         { key: 'all' as const, label: 'All' },
@@ -56,8 +72,8 @@ export default function ProfileFooter({ username }: { username: string }) {
                             key={key}
                             onClick={() => setFilter(key)}
                             className={`flex items-center gap-1.5 py-1.5 px-3 rounded-md text-xs font-medium transition-all duration-200 cursor-pointer ${filter === key
-                                    ? 'bg-[#1DB954] text-black '
-                                    : 'text-gray-400 hover:text-white hover:bg-white/5'
+                                ? 'bg-[#1DB954] text-black '
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             {Icon && <Icon className="w-3 h-3" />}
@@ -132,26 +148,26 @@ export default function ProfileFooter({ username }: { username: string }) {
 
                                             <div>
                                                 <div className="flex items-center gap-2 mb-1">
-                                                <h4 className="text-white font-medium truncate">
-                                                    {itemName}
-                                                </h4>
-                                                {/* Type badge */}
-                                                <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${review.review_type === 'song'
+                                                    <h4 className="text-white font-medium truncate">
+                                                        {itemName}
+                                                    </h4>
+                                                    {/* Type badge */}
+                                                    <span className={`shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full ${review.review_type === 'song'
                                                         ? 'bg-purple-500/15 text-purple-400'
                                                         : 'bg-blue-500/15 text-blue-400'
-                                                    }`}>
-                                                    {review.review_type === 'song' ? 'Song' : 'Album'}
-                                                </span>
-                                                {!review.is_public && (
-                                                    <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
-                                                        Private
+                                                        }`}>
+                                                        {review.review_type === 'song' ? 'Song' : 'Album'}
                                                     </span>
-                                                )}
+                                                    {!review.is_public && (
+                                                        <span className="shrink-0 text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400">
+                                                            Private
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <p className="text-gray-400 text-sm mb-2">{artistName}</p>
                                             </div>
 
-                                            <p className="text-gray-400 text-sm mb-2">{artistName}</p>
-                                            </div>
-                                            
 
                                             {review.rating != null && (
                                                 <div className='pr-15'>
@@ -159,7 +175,7 @@ export default function ProfileFooter({ username }: { username: string }) {
                                                 </div>
                                             )}
                                         </div>
-                                        
+
                                         {review.review && (
                                             <p className="text-gray-300 text-sm mt-2 line-clamp-2">
                                                 {review.review}
