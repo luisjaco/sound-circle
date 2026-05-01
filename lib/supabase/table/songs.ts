@@ -28,7 +28,6 @@ export async function insertSong(isrc: string, artistName: string, songName: str
     // @ts-ignore
     const albumMBID = MBSongData.releases[0].id
 
-
     // query supabase to see if artist or album exist
     const artistSearch = supabase
         .from('artists')

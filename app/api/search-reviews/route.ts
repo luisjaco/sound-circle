@@ -31,7 +31,15 @@ export async function GET(req: NextRequest) {
 
             const { data, error } = await supabase
                 .from('album_reviews')
-                .select('*')
+                .select(`
+                    *,
+                    users (
+                        id,
+                        name,
+                        username,
+                        profile_picture_url
+                    )
+                    `)
                 .eq('album_id', albumId)
                 .order('created_at', { ascending: false });
 
@@ -57,7 +65,15 @@ export async function GET(req: NextRequest) {
 
             const { data, error } = await supabase
                 .from('song_reviews')
-                .select('*')
+                .select(`
+                    *,
+                    users (
+                        id,
+                        name,
+                        username,
+                        profile_picture_url
+                    )
+                    `)
                 .eq('song_id', songId)
                 .order('created_at', { ascending: false });
 

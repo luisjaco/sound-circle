@@ -138,7 +138,7 @@ export default function FeedReviewCard({
                     />
                 </div>
             ) : (
-                <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl bg-gradient-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-white/5 shadow-inner">
+                <div className="w-24 h-24 md:w-28 md:h-28 rounded-xl bg-linear-to-br from-gray-800 to-gray-900 flex items-center justify-center shrink-0 border border-white/5 shadow-inner">
                     {review.review_type === "song" ? (
                         <Music className="w-8 h-8 text-gray-600" />
                     ) : (

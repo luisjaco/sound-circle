@@ -55,3 +55,27 @@ export async function getSongs(songIds: string[]) {
 
     return data;
 }
+
+export async function searchSpotifyByISRC(isrc: string) {
+
+    const tokenData = await getClientToken();
+
+    if (!tokenData) return false;
+
+    const res = await fetch(
+        `https://api.spotify.com/v1/search?q=isrc:${isrc}&type=track&limit=1`,
+        {
+            headers: {
+                Authorization: `Bearer ${tokenData.access_token}`,
+            },
+        }
+    );
+
+    if (!res.ok) {
+        throw new Error(`Spotify API error: ${res.status}`);
+    }
+    
+    const data = await res.json();
+
+    return data.tracks.items[0] || null;
+}

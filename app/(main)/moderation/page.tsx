@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect } from 'react';
 import { Shield, AlertTriangle, Trash2, Edit3, Ban, Flag, X, Check, Loader2 } from 'lucide-react';
+import ProfilePicture from '@/components/img/ProfilePicture';
 
 interface FlaggedPost {
   id: number;
@@ -216,7 +217,7 @@ export default function ModeratorPage() {
         <div className="flex gap-4 mb-6 border-b border-gray-800">
           <button
             onClick={() => setActiveTab('flagged')}
-            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 ${
+            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 cursor-pointer ${
               activeTab === 'flagged' ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -228,7 +229,7 @@ export default function ModeratorPage() {
           </button>
           <button
             onClick={() => setActiveTab('users')}
-            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 ${
+            className={`pb-3 px-2 font-medium transition-colors relative flex items-center gap-2 cursor-pointer ${
               activeTab === 'users' ? 'text-[#1DB954]' : 'text-gray-400 hover:text-white'
             }`}
           >
@@ -254,15 +255,7 @@ export default function ModeratorPage() {
                   {/* Post Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      {post.userAvatar ? (
-                        <img
-                          src={post.userAvatar}
-                          alt={post.username || ''}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gray-800" />
-                      )}
+                        <ProfilePicture size={14} src={post.userAvatar ? post.userAvatar : undefined} /> 
                       <div>
                         <p className="text-white font-medium">{post.username || 'Unknown user'}</p>
                         <p className="text-gray-400 text-sm">{post.type === 'song_review' ? 'Song Review' : 'Album Review'}</p>
@@ -338,21 +331,21 @@ export default function ModeratorPage() {
                   <div className="flex gap-2">
                     <button
                       onClick={() => handleEditPost(post.id, post.content || '')}
-                      className="flex-1 px-4 py-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20 transition-colors flex items-center justify-center gap-2 border border-blue-500/20"
+                      className="flex-1 px-4 py-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20 transition-colors flex items-center justify-center gap-2 border border-blue-500/20 cursor-pointer"
                     >
                       <Edit3 className="w-4 h-4" />
                       Edit
                     </button>
                     <button
                       onClick={() => handleDeletePost(post.id, post.type)}
-                      className="flex-1 px-4 py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2 border border-red-500/20"
+                      className="flex-1 px-4 py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2 border border-red-500/20 cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                       Delete
                     </button>
                     <button
                       onClick={() => handleDismissFlag(post.id, post.type)}
-                      className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2"
+                      className="flex-1 px-4 py-2 bg-gray-700 text-white rounded-lg hover:bg-gray-600 transition-colors flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <X className="w-4 h-4" />
                       Dismiss
@@ -378,15 +371,7 @@ export default function ModeratorPage() {
                   {/* User Header */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      {user.userAvatar ? (
-                        <img
-                          src={user.userAvatar}
-                          alt={user.username}
-                          className="w-12 h-12 rounded-full"
-                        />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-800"/>
-                      )}
+                      <ProfilePicture size={14} src={user.userAvatar ? user.userAvatar : undefined} /> 
                       <div>
                         <p className="text-white font-medium">{user.username}</p>
                       </div>
@@ -433,7 +418,7 @@ export default function ModeratorPage() {
                     {!user.warned && !user.banned && (
                       <button
                         onClick={() => handleUserAction(user.userId, 'warn')}
-                        className="flex-1 px-4 py-2 bg-yellow-500/10 text-yellow-400 rounded-lg hover:bg-yellow-500/20 transition-colors flex items-center justify-center gap-2 border border-yellow-500/20"
+                        className="flex-1 px-4 py-2 bg-yellow-500/10 text-yellow-400 rounded-lg hover:bg-yellow-500/20 transition-colors flex items-center justify-center gap-2 border border-yellow-500/20 cursor-pointer"
                       >
                         <AlertTriangle className="w-4 h-4" />
                         Issue Warning
@@ -442,7 +427,7 @@ export default function ModeratorPage() {
                     {!user.banned && (
                       <button
                         onClick={() => handleUserAction(user.userId, 'ban')}
-                        className="flex-1 px-4 py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2 border border-red-500/20"
+                        className="flex-1 px-4 py-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors flex items-center justify-center gap-2 border border-red-500/20 cursor-pointer"
                       >
                         <Ban className="w-4 h-4" />
                         Ban Account
@@ -451,7 +436,7 @@ export default function ModeratorPage() {
                     {user.banned && (
                       <button
                         onClick={() => handleUserAction(user.userId, 'unban')}
-                        className="flex-1 px-4 py-2 bg-[#1DB954]/10 text-[#1DB954] rounded-lg hover:bg-[#1DB954]/20 transition-colors flex items-center justify-center gap-2 border border-[#1DB954]/20"
+                        className="flex-1 px-4 py-2 bg-[#1DB954]/10 text-[#1DB954] rounded-lg hover:bg-[#1DB954]/20 transition-colors flex items-center justify-center gap-2 border border-[#1DB954]/20 cursor-pointer"
                       >
                         <Check className="w-4 h-4" />
                         Unban Account

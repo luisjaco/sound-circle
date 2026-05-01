@@ -6,6 +6,7 @@ import ReviewComments from '@/components/ReviewComments';
 import { useState, use, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/browser';
+import ProfilePicture from '@/components/img/ProfilePicture';
 
 // turns a timestamp into a friendly "2h ago" style string
 function getTimeAgo(dateStr: string): string {
@@ -134,7 +135,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
   if (loading) {
     return (
       <div className="min-h-screen bg-black pt-15 pb-20 animate-pulse">
-        
+
         <div className="max-w-2xl mx-auto px-4 py-6">
           <div className="flex gap-6 mb-6">
             <div className="w-40 h-40 rounded-lg bg-[#181818] shrink-0" />
@@ -207,7 +208,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
               className="flex-1 flex items-center justify-center gap-2 bg-[#1DB954] hover:bg-[#1ed760] text-white px-4 py-3 rounded-full transition-colors"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
               </svg>
               <span className="font-medium">Spotify</span>
             </a>
@@ -292,7 +293,7 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
               </div>
             ) : reviews.length > 0 ? (
               reviews.map((r: any) => (
-                <div key={r.id} className="relative flex flex-col border border-white/5 bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-5 hover:bg-[#151515] transition-all duration-300 overflow-hidden group shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+                <div key={r.id} className="relative flex flex-col border border-white/5 bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-5 hover:bg-[#151515] transition-all duration-300 overflow-hidden group shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] cursor-pointer">
                   {/* Atmospheric Background Glow */}
                   <div className="absolute -top-32 -right-32 w-64 h-64 bg-[#1DB954]/5 rounded-full blur-[80px] group-hover:bg-[#1DB954]/10 transition-colors duration-700 pointer-events-none z-0" />
                   <div className="absolute -bottom-32 -left-32 w-64 h-64 bg-purple-500/5 rounded-full blur-[80px] group-hover:bg-purple-500/10 transition-colors duration-700 pointer-events-none z-0" />
@@ -300,18 +301,28 @@ export default function SongPage({ params }: { params: Promise<{ songId: string 
                   <div className="relative z-10">
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-linear-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center ring-2 ring-gray-700">
-                          <span className="text-white font-bold text-xs">
-                            {(r.user_id as string).charAt(0).toUpperCase()}
-                          </span>
+                        <ProfilePicture size={14} src={r.users.profile_picture_url} />
+                        <div className="flex-1 min-w-0 ml-2">
+                          <div className="flex items-center gap-2">
+                            <div
+                              onClick={() => router.push(`/user/${r.users.username}`)}
+                              className="text-white font-medium hover:text-[#1DB954] transition-colors truncate cursor-pointer"
+                            >
+                              {r.users.name || r.users.username}
+                            </div>
+                            <span className="text-gray-500 text-xs shrink-0">•</span>
+                            <span className="text-gray-400 text-xs font-medium">{getTimeAgo(r.created_at)}</span>
+                          </div>
+                          <p className="text-gray-500 text-xs">
+                            @{r.users.username}
+                          </p>
                         </div>
-                        <span className="text-gray-400 text-xs font-medium">{getTimeAgo(r.created_at)}</span>
                       </div>
-                      
+
                       {/* Vinyl Rating Badge */}
                       {r.rating != null && (
                         <div className="flex items-center bg-black/40 px-2.5 py-1.5 rounded-lg border border-white/5 backdrop-blur-md shadow-inner">
-                            <VinylRating rating={Number(r.rating)} size="md" />
+                          <VinylRating rating={Number(r.rating)} size="md" />
                         </div>
                       )}
                     </div>

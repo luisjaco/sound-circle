@@ -206,7 +206,7 @@ export default function ReviewComments({ reviewId, userId, defaultExpanded = fal
             {/* Action bar — always visible */}
             <div className="flex items-center w-full bg-black/20 rounded-xl p-1 border border-white/5 backdrop-blur-md shadow-inner">
                 {/* Column 1: Upvote button */}
-                <div className="flex-1 flex justify-center relative">
+                <div className="flex-1 flex justify-center relative cursor-pointer">
                     <div className="w-full flex justify-center py-1.5 rounded-lg hover:bg-[#1DB954]/10 transition-colors duration-300">
                         <UpvoteButton postId={reviewId} userId={userId} />
                     </div>
@@ -215,7 +215,7 @@ export default function ReviewComments({ reviewId, userId, defaultExpanded = fal
                 </div>
 
                 {/* Column 2: Add comment button */}
-                <div className="flex-1 flex justify-center relative">
+                <div className="flex-1 flex justify-center relative cursor-pointer">
                     <button
                         onClick={() => {
                             if (!userId) {
@@ -302,7 +302,7 @@ export default function ReviewComments({ reviewId, userId, defaultExpanded = fal
                                         className="w-7 h-7 rounded-full object-cover shrink-0 mt-0.5 ring-1 ring-gray-700"
                                     />
                                 ) : (
-                                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+                                    <div className="w-7 h-7 rounded-full bg-linear-to-br from-[#1DB954] to-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
                                         <span className="text-white font-bold text-[10px]">
                                             {getDisplayName(c).charAt(0).toUpperCase()}
                                         </span>
