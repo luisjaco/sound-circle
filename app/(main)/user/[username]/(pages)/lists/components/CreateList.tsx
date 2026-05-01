@@ -185,7 +185,7 @@ export function CreateList({ setCurrentLists }: CreateListProps) {
     )
 
     const listForm = (
-        <div className="bg-[#181818] rounded-xl p-5 border border-gray-800/50 flex flex-col gap-4">
+        <div className="bg-[#181818] rounded-xl p-5 border border-gray-800/50 flex flex-col gap-4 w-4xl mx-auto">
             <header className='flex w-full h-full items-center gap-10'>
                 {imageSection}
 
